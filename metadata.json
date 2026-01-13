@@ -1,0 +1,7 @@
+{
+  "name": "Finances AI - Gestor Completo",
+  "description": "Sistema de gestão financeira com pagamentos parciais, DRE e consultoria via IA.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
