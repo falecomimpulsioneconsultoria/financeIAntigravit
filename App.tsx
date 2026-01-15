@@ -336,6 +336,12 @@ export default function App() {
       pendingExpense: expensePending
     };
   }, [transactions, accounts]);
+// turbo - move hooks here
+  const availableTags = useMemo(() => {
+    const tags = new Set<string>();
+    transactions.forEach(t => t.tags?.forEach(tag => tags.add(tag)));
+    return Array.from(tags).sort();
+  }, [transactions]);
 
   const handleAddAccount = async (data: Omit<Account, 'id'>) => {
     if (!currentUser) return;
@@ -524,12 +530,6 @@ export default function App() {
         return null;
     }
   };
-
-  const availableTags = useMemo(() => {
-    const tags = new Set<string>();
-    transactions.forEach(t => t.tags?.forEach(tag => tags.add(tag)));
-    return Array.from(tags).sort();
-  }, [transactions]);
 
   return (
     <div className="flex h-screen bg-gray-50/50 font-sans text-gray-900 overflow-hidden">
