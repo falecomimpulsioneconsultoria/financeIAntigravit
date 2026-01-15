@@ -18,7 +18,6 @@ import { AuthScreen } from './components/Auth';
 import { authService } from './services/authService';
 import { dataService } from './services/dataService';
 import { ConfirmModal } from './components/ui/ConfirmModal';
-import { ErrorBoundary } from './components/ErrorBoundary';
 
 const DEFAULT_DASHBOARD_CONFIG: DashboardConfig = {
   showBalanceCard: true,
@@ -60,7 +59,15 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const [isSidebarPinned, setIsSidebarPinned] = useState(true);
+  const [isSidebarPinned, setIsSidebarPinned] = useState(() => {
+    const saved = localStorage.getItem('sidebar_pinned');
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sidebar_pinned', isSidebarPinned.toString());
+  }, [isSidebarPinned]);
+
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [modalInitialType, setModalInitialType] = useState<TransactionType>('EXPENSE');
   const isSidebarOpen = isSidebarPinned || isSidebarHovered;
@@ -561,9 +568,13 @@ export default function App() {
           </div>
           {isSidebarOpen && (
             <button
-              onClick={() => setIsSidebarPinned(!isSidebarPinned)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsSidebarPinned(!isSidebarPinned);
+              }}
               className={`p-1.5 rounded-md transition-all ${isSidebarPinned ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
               title={isSidebarPinned ? 'Retrair menu' : 'Fixar menu'}
+              type="button"
             >
               <svg className={`w-4 h-4 transition-transform ${!isSidebarPinned ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
