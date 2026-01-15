@@ -1,176 +1,174 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Finances AI</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <style>
-    body {
-      background-color: #f3f4f6;
-      font-family: 'Inter', sans-serif;
-    }
-
-    /* Custom scrollbar for better aesthetics */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
-
-    /* Global Animations */
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Finances IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+      body {
+        background-color: #f3f4f6;
+        font-family: "Inter", sans-serif;
       }
 
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .animate-fade-in {
-      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
+      /* Custom scrollbar for better aesthetics */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
       }
 
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .animate-fade-in-up {
-      animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes scaleIn {
-      from {
-        opacity: 0;
-        transform: scale(0.95);
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
       }
 
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    .animate-scale-in {
-      animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes blob {
-      0% {
-        transform: translate(0px, 0px) scale(1);
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
       }
 
-      33% {
-        transform: translate(30px, -50px) scale(1.1);
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
       }
 
-      66% {
-        transform: translate(-20px, 20px) scale(0.9);
+      /* Global Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
-      100% {
-        transform: translate(0px, 0px) scale(1);
-      }
-    }
-
-    .animate-blob {
-      animation: blob 7s infinite;
-    }
-
-    .animation-delay-2000 {
-      animation-delay: 2s;
-    }
-
-    @keyframes loadingBar {
-      0% {
-        transform: scaleX(0);
+      .animate-fade-in {
+        animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
 
-      50% {
-        transform: scaleX(0.5);
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
-      100% {
-        transform: scaleX(1);
+      .animate-fade-in-up {
+        animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
-    }
 
-    .animate-loading-bar {
-      animation: loadingBar 1.5s ease-in-out infinite;
-    }
+      @keyframes scaleIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
 
-    /* Animation Delays for Staggered Effects */
-    .delay-75 {
-      animation-delay: 75ms;
-    }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
 
-    .delay-100 {
-      animation-delay: 100ms;
-    }
+      .animate-scale-in {
+        animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
 
-    .delay-150 {
-      animation-delay: 150ms;
-    }
+      @keyframes blob {
+        0% {
+          transform: translate(0px, 0px) scale(1);
+        }
 
-    .delay-200 {
-      animation-delay: 200ms;
-    }
+        33% {
+          transform: translate(30px, -50px) scale(1.1);
+        }
 
-    .delay-300 {
-      animation-delay: 300ms;
-    }
+        66% {
+          transform: translate(-20px, 20px) scale(0.9);
+        }
 
-    .delay-500 {
-      animation-delay: 500ms;
-    }
+        100% {
+          transform: translate(0px, 0px) scale(1);
+        }
+      }
 
-    .delay-700 {
-      animation-delay: 700ms;
-    }
-  </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
-  }
-}
-</script>
-</head>
+      .animate-blob {
+        animation: blob 7s infinite;
+      }
 
-<body>
-  <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
+      .animation-delay-2000 {
+        animation-delay: 2s;
+      }
 
+      @keyframes loadingBar {
+        0% {
+          transform: scaleX(0);
+        }
+
+        50% {
+          transform: scaleX(0.5);
+        }
+
+        100% {
+          transform: scaleX(1);
+        }
+      }
+
+      .animate-loading-bar {
+        animation: loadingBar 1.5s ease-in-out infinite;
+      }
+
+      /* Animation Delays for Staggered Effects */
+      .delay-75 {
+        animation-delay: 75ms;
+      }
+
+      .delay-100 {
+        animation-delay: 100ms;
+      }
+
+      .delay-150 {
+        animation-delay: 150ms;
+      }
+
+      .delay-200 {
+        animation-delay: 200ms;
+      }
+
+      .delay-300 {
+        animation-delay: 300ms;
+      }
+
+      .delay-500 {
+        animation-delay: 500ms;
+      }
+
+      .delay-700 {
+        animation-delay: 700ms;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "react/": "https://aistudiocdn.com/react@^19.2.0/",
+          "react": "https://aistudiocdn.com/react@^19.2.0",
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+          "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+          "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
+          "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
 </html>
