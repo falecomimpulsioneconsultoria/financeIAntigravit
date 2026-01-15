@@ -49,6 +49,7 @@ interface TransactionFormData extends Omit<Transaction, 'id'> {
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(authService.getCurrentUser());
   const [loadingData, setLoadingData] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const [activeView, setActiveView] = useState<ViewState>('DASHBOARD');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -95,7 +96,9 @@ export default function App() {
         }
       } catch (error) {
         console.error("Session init error", error);
-        setLoadingData(false);
+        setCurrentUser(null);
+      } finally {
+        setIsInitialLoading(false);
       }
     };
     initSession();
@@ -430,6 +433,17 @@ export default function App() {
     setIsModalOpen(true);
   };
 
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-500 font-medium">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!currentUser) return <AuthScreen onLogin={handleLogin} />;
   const permissions = currentUser.activePermissions || DEFAULT_PERMISSIONS;
 
@@ -519,7 +533,6 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-gray-50/50 font-sans text-gray-900 overflow-hidden">
-      <ErrorBoundary>
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-[150] md:hidden backdrop-blur-sm animate-fade-in"
@@ -685,7 +698,6 @@ export default function App() {
         variant={confirmModal.variant}
         confirmLabel={confirmModal.variant === 'warning' ? 'Entendido' : 'Confirmar'}
       />
-      </ErrorBoundary>
     </div>
   );
 }

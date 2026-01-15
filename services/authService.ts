@@ -144,11 +144,11 @@ export const authService = {
     await supabase.from('payment_methods').insert(paymentMethodsPayload);
 
     // We can return the user object directly.
-    return {
+    const userObj = {
       id: data.user.id,
       name,
       email,
-      role: 'USER',
+      role: 'USER' as const,
       isActive: true,
       createdAt: new Date().toISOString(),
       expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -157,6 +157,9 @@ export const authService = {
       subUsers: [],
       activePermissions: FULL_ACCESS
     };
+
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userObj));
+    return userObj;
   },
 
   login: async (email: string, password: string): Promise<User> => {
