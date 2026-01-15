@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Dashboard } from './components/Dashboard';
+// import { Dashboard } from './components/Dashboard'; // REMOVED
 import { DashboardV2 } from './components/DashboardV2';
 import { TransactionModal } from './components/TransactionModal';
 import { TransactionList } from './components/TransactionList';
@@ -38,7 +38,7 @@ const DEFAULT_PERMISSIONS: UserPermissions = {
   viewSettings: true
 };
 
-type ViewState = 'DASHBOARD' | 'DASHBOARD_V2' | 'TRANSACTIONS' | 'ACCOUNTS' | 'CATEGORIES' | 'REPORTS' | 'SETTINGS' | 'ADMIN' | 'ADMIN_USERS' | 'ADMIN_ACCOUNTS' | 'ADMIN_PLANS' | 'ADMIN_PAYMENTS' | 'ADMIN_SETTINGS' | 'INVESTMENTS';
+type ViewState = 'DASHBOARD' | 'TRANSACTIONS' | 'ACCOUNTS' | 'CATEGORIES' | 'REPORTS' | 'SETTINGS' | 'ADMIN' | 'ADMIN_USERS' | 'ADMIN_ACCOUNTS' | 'ADMIN_PLANS' | 'ADMIN_PAYMENTS' | 'ADMIN_SETTINGS' | 'INVESTMENTS';
 
 interface TransactionFormData extends Omit<Transaction, 'id'> {
   recurrenceCount?: number;
@@ -428,21 +428,6 @@ export default function App() {
     switch (activeView) {
       case 'DASHBOARD':
         return (
-          <Dashboard
-            summary={financialSummary}
-            transactions={transactions}
-            accounts={accounts}
-            categories={categories}
-            user={currentUser}
-            onTransactionClick={(t) => {
-              setActiveView('TRANSACTIONS');
-              setEditingTransaction(t);
-              setIsModalOpen(true);
-            }}
-          />
-        );
-      case 'DASHBOARD_V2':
-        return (
           <DashboardV2
             summary={financialSummary}
             transactions={transactions}
@@ -461,6 +446,7 @@ export default function App() {
             }}
           />
         );
+      // case 'DASHBOARD_V2': REMOVED
       case 'TRANSACTIONS':
         return (
           <div className="h-full w-full">
@@ -609,8 +595,7 @@ export default function App() {
             /* MENUS PARA USUÁRIOS NORMAIS */
             <>
               {[
-                { view: 'DASHBOARD', label: 'Dashboard', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
-                { view: 'DASHBOARD_V2', label: 'Dashboard 2.0', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+                { view: 'DASHBOARD', label: 'Dashboard', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
                 { view: 'INVESTMENTS', label: 'Investimentos', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' },
                 { view: 'TRANSACTIONS', label: 'Lançamentos', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
                 { view: 'ACCOUNTS', label: 'Contas', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
