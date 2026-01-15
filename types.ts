@@ -7,7 +7,7 @@ export type AccountType = 'PERSONAL' | 'BUSINESS'; // Perfil do Usuário
 export type BankAccountType = 'CHECKING' | 'INVESTMENT' | 'CASH'; // Tipo da Conta Bancária
 
 // Mapeamento para o DRE de Representação Comercial
-export type DreCategory = 
+export type DreCategory =
   | 'DRE_GROSS_REVENUE'        // (+) Receita Bruta
   | 'DRE_TAXES'                // (-) Impostos sobre Vendas
   | 'DRE_COSTS'                // (-) Custos do Serviço (Comissões repassadas)
@@ -46,13 +46,13 @@ export interface User {
   lastPaymentDate?: string; // ISO Date
   lastPaymentAmount?: number;
   subscriptionPrice?: number; // Valor padrão a ser cobrado
-  
+
   // New Profile Fields
   accountType: AccountType;
   document?: string; // CPF ou CNPJ
   photoUrl?: string; // Base64 or URL
   subUsers?: SubUser[];
-  
+
   // Active Session Permissions (Injected during login)
   activePermissions?: UserPermissions;
 }
@@ -73,9 +73,9 @@ export interface Category {
   parentId?: string; // ID da categoria pai, se for uma subcategoria
   dreCategory?: DreCategory; // Campo novo para mapeamento do DRE
   budgetLimit?: number; // Meta ou Limite Mensal
-  
+
   // Optional for AI Generation Structure (Frontend only)
-  subcategories?: Omit<Category, 'id'>[]; 
+  subcategories?: Omit<Category, 'id'>[];
 }
 
 export interface PaymentMethod {
@@ -87,27 +87,23 @@ export interface Transaction {
   id: string;
   description: string;
   amount: number;
-  
-  date: string; // ISO string YYYY-MM-DD (COMPETÊNCIA / VENCIMENTO)
-  paymentDate?: string; // ISO string YYYY-MM-DD (CAIXA / PAGAMENTO REAL)
-
+  date: string;
+  paymentDate?: string;
   type: TransactionType;
-  categoryId: string; // Para TRANSFER, pode ser vazio ou uma categoria interna
-  accountId: string; // Conta de Origem (ou única conta para Receita/Despesa)
-  toAccountId?: string; // Conta de Destino (Apenas para TRANSFER)
-  paymentMethodId?: string; // Nova forma de pagamento
-  
-  status: TransactionStatus;
+  categoryId?: string;
+  accountId: string;
+  toAccountId?: string;
+  paymentMethodId?: string;
+  status: 'PAID' | 'PENDING';
   observation?: string;
-  
-  // Recurrence Fields
+  tags?: string[];
+  receiptUrl?: string;
+  groupId?: string;
   isRecurring: boolean;
   recurringType?: RecurrenceType;
   installmentCurrent?: number;
   installmentTotal?: number;
-
-  // Hierarchy Field
-  parentId?: string; // ID do lançamento pai (no caso de parcelamento manual ou saldo restante)
+  parentId?: string;
 }
 
 export interface FinancialSummary {
@@ -125,6 +121,7 @@ export interface DashboardConfig {
   showPendingCard: boolean;
   showAIAnalysis: boolean;
   showCharts: boolean;
+  currency: string;
 }
 
 // Interface Estruturada para o Retorno da IA
@@ -134,4 +131,32 @@ export interface AIAnalysisResult {
   insights: string[]; // Pontos chave (Bullet points)
   recommendation: string; // Ação imediata
   detailedReasoning: string; // Texto longo para "expandir"
+}
+
+// INVESTMENTS
+export type InvestmentType = 'STOCK' | 'REIT' | 'FIXED_INCOME' | 'CRYPTO' | 'OTHER';
+export type InvestmentTransactionType = 'BUY' | 'SELL' | 'DIVIDEND' | 'JCP';
+
+export interface InvestmentAsset {
+  id: string;
+  userId: string;
+  ticker?: string;
+  name: string;
+  type: InvestmentType;
+  currentPrice: number;
+  quantity: number;
+  averagePrice: number;
+  createdAt?: string;
+}
+
+export interface InvestmentTransaction {
+  id: string;
+  assetId: string;
+  userId: string;
+  type: InvestmentTransactionType;
+  quantity: number;
+  price: number;
+  totalAmount: number;
+  date: string;
+  fees: number;
 }
