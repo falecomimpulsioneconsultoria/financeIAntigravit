@@ -18,6 +18,7 @@ import { AuthScreen } from './components/Auth';
 import { authService } from './services/authService';
 import { dataService } from './services/dataService';
 import { ConfirmModal } from './components/ui/ConfirmModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const DEFAULT_DASHBOARD_CONFIG: DashboardConfig = {
   showBalanceCard: true,
@@ -389,12 +390,20 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    await authService.logout();
-    setCurrentUser(null);
-    setTransactions([]);
-    setAccounts([]);
-    setCategories([]);
-    setActiveView('DASHBOARD');
+    try {
+      await authService.logout();
+    } catch (e) {
+      console.error("Logout error", e);
+    } finally {
+      // Clear local state
+      setCurrentUser(null);
+      setTransactions([]);
+      setAccounts([]);
+      setCategories([]);
+      setActiveView('DASHBOARD');
+      // Force reload to ensure clean memory and auth state
+      window.location.reload(); 
+    }
   };
 
 
@@ -510,6 +519,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-gray-50/50 font-sans text-gray-900 overflow-hidden">
+      <ErrorBoundary>
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-[150] md:hidden backdrop-blur-sm animate-fade-in"
@@ -675,6 +685,7 @@ export default function App() {
         variant={confirmModal.variant}
         confirmLabel={confirmModal.variant === 'warning' ? 'Entendido' : 'Confirmar'}
       />
+      </ErrorBoundary>
     </div>
   );
 }
