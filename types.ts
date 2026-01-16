@@ -1,7 +1,7 @@
 
 export type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER';
 export type TransactionStatus = 'PAID' | 'PENDING';
-export type UserRole = 'ADMIN' | 'USER';
+export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'USER';
 export type RecurrenceType = 'FIXED' | 'INSTALLMENT';
 export type AccountType = 'PERSONAL' | 'BUSINESS'; // Perfil do Usuário
 export type BankAccountType = 'CHECKING' | 'INVESTMENT' | 'CASH'; // Tipo da Conta Bancária

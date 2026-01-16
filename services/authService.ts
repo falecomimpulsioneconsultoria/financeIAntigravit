@@ -50,6 +50,10 @@ export const authService = {
     // Map Frontend types to DB columns if necessary
     const dbUpdates: any = {};
     if (updates.name) dbUpdates.name = updates.name;
+    if (updates.email) dbUpdates.email = updates.email;
+    if (updates.role) dbUpdates.role = updates.role;
+    if (updates.document) dbUpdates.document = updates.document;
+    if (updates.accountType) dbUpdates.account_type = updates.accountType;
     if (updates.isActive !== undefined) dbUpdates.is_active = updates.isActive;
     if (updates.expirationDate) dbUpdates.expiration_date = updates.expirationDate;
     if (updates.subUsers) dbUpdates.sub_users = updates.subUsers;

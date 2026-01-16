@@ -510,15 +510,15 @@ export default function App() {
       case 'REPORTS':
         return permissions.viewReports && <div className="w-full"><Reports transactions={transactions} categories={categories} user={currentUser} /></div>;
       case 'ADMIN':
-        return currentUser.role === 'ADMIN' && <div className="w-full"><AdminUsers /></div>;
+        return (currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN') && <div className="w-full"><AdminUsers /></div>;
       case 'ADMIN_ACCOUNTS':
-        return currentUser.role === 'ADMIN' && <div className="w-full"><AdminAccounts /></div>;
+        return (currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN') && <div className="w-full"><AdminAccounts /></div>;
       case 'ADMIN_PLANS':
-        return currentUser.role === 'ADMIN' && <div className="w-full"><AdminPlans /></div>;
+        return (currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN') && <div className="w-full"><AdminPlans /></div>;
       case 'ADMIN_PAYMENTS':
-        return currentUser.role === 'ADMIN' && <div className="w-full"><AdminPayments /></div>;
+        return (currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN') && <div className="w-full"><AdminPayments /></div>;
       case 'ADMIN_SETTINGS':
-        return currentUser.role === 'ADMIN' && <div className="w-full"><AdminSettings /></div>;
+        return (currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN') && <div className="w-full"><AdminSettings /></div>;
       case 'SETTINGS':
         return permissions.viewSettings && (
           <Settings
@@ -606,7 +606,7 @@ export default function App() {
         {/* NAVEGAÇÃO PRINCIPAL */}
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto py-4">
           {/* MENUS PARA ADMIN */}
-          {currentUser.role === 'ADMIN' ? (
+          {(currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN') ? (
             <>
               {[
                 { view: 'ADMIN', label: 'Usuários', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
