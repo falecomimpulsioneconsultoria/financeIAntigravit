@@ -19,6 +19,23 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ user, isOpen, onClose, on
     const [role, setRole] = useState(user.role);
     const [isLoading, setIsLoading] = useState(false);
 
+    const handleDocumentChange = (val: string) => {
+        let value = val.replace(/\D/g, '');
+        if (accountType === 'PERSONAL') {
+            if (value.length > 11) value = value.slice(0, 11);
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        } else {
+            if (value.length > 14) value = value.slice(0, 14);
+            value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+            value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+            value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+            value = value.replace(/(\d{4})(\d)/, '$1-$2');
+        }
+        setDocument(value);
+    };
+
     if (!isOpen) return null;
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -77,7 +94,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ user, isOpen, onClose, on
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">CPF/CNPJ</label>
-                            <input type="text" value={document} onChange={e => setDocument(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                            <input type="text" value={document} onChange={e => handleDocumentChange(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder={accountType === 'PERSONAL' ? "000.000.000-00" : "00.000.000/0000-00"} />
                         </div>
                     </div>
 

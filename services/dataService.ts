@@ -413,6 +413,23 @@ export const dataService = {
     return data || [];
   },
 
+  getAllTransactionsForAdmin: async (limit = 50): Promise<any[]> => {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select(`
+        *,
+        profiles: user_id(name, email)
+      `)
+      .order('date', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching all transactions:', error.message);
+      return [];
+    }
+    return data || [];
+  },
+
   // --- INVESTMENTS ---
   getAssets: async (userId: string): Promise<any[]> => {
     const { data, error } = await supabase
