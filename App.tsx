@@ -21,7 +21,7 @@ import { authService } from './services/authService';
 import { dataService } from './services/dataService';
 import { PaymentWall } from './components/subscription/PaymentWall';
 import { SuspensionBanner } from './components/subscription/SuspensionBanner';
-import { subscriptionService } from './services/subscriptionService';
+import { useSubscriptionManager } from './controllers/SubscriptionController';
 import { ConfirmModal } from './components/ui/ConfirmModal';
 
 const DEFAULT_DASHBOARD_CONFIG: DashboardConfig = {
@@ -52,6 +52,7 @@ interface TransactionFormData extends Omit<Transaction, 'id'> {
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(authService.getCurrentUser());
+  const { handlePaymentSimulation } = useSubscriptionManager(currentUser || undefined);
   const [loadingData, setLoadingData] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
@@ -701,6 +702,18 @@ export default function App() {
           </div>
         </div>
       </main>
+
+      {/* WALL DE PAGAMENTO */}
+      {currentUser && (
+        <PaymentWall 
+            user={currentUser} 
+            onSimulatePayment={() => handlePaymentSimulation(currentUser).then(updated => {
+                setCurrentUser(updated);
+                // Force reload or data fetch could go here
+                alert("Pagamento simulado com sucesso! Acesso liberado.");
+            })} 
+        />
+      )}
 
       {/* MODAL DE TRANSAÇÃO (EXPANSÍVEL) */}
       <TransactionModal

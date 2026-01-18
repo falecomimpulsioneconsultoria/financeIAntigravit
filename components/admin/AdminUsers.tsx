@@ -3,14 +3,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { User, Plan, PaymentStatus } from '../../types';
 import { authService } from '../../services/authService';
 import { dataService } from '../../services/dataService';
-import { subscriptionService } from '../../services/subscriptionService';
+import { useSubscriptionManager } from '../../controllers/SubscriptionController';
 import { InvoiceList } from '../subscription/InvoiceList';
 import { Button } from '../ui/Button';
 
 interface ClientManagementViewProps {
     user: User;
     onClose: () => void;
-    onSave: (userId: string, updates: Partial<User>) => Promise<void>;
+    onSave: (userId: string, data: Partial<User>) => Promise<void>;
 }
 
 const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClose, onSave }) => {
@@ -26,27 +26,26 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
     const [isLoading, setIsLoading] = useState(false);
     const [plans, setPlans] = useState<any[]>([]);
 
-    const [invoices, setInvoices] = useState<any[]>([]);
+    // Controller Hook Integration
+    const { invoices, refreshInvoices, validateDoc, calculateNewExpiration } = useSubscriptionManager();
 
     useEffect(() => {
         dataService.getPlans().then(setPlans);
-        // Mock de faturas
-        setInvoices(subscriptionService.getInvoices(user.id));
-    }, [user.id]);
+        refreshInvoices(user.id);
+    }, [user.id, refreshInvoices]);
 
     const handlePlanChange = (selectedPlanId: string) => {
         setPlanId(selectedPlanId);
         const plan = plans.find(p => p.id === selectedPlanId);
         if (plan) {
             setSubscriptionPrice(Number(plan.price));
-            const newExp = subscriptionService.calculateNextDue(new Date().toISOString(), plan.interval);
+            const newExp = calculateNewExpiration(new Date().toISOString(), plan.interval);
             setExpirationDate(newExp.split('T')[0]);
         }
     };
 
     const handleDocumentChange = (val: string) => {
         let value = val.replace(/\D/g, '');
-        // Validação visual simples no input mask
         if (accountType === 'PERSONAL') {
             if (value.length > 11) value = value.slice(0, 11);
             value = value.replace(/(\d{3})(\d)/, '$1.$2');
@@ -60,17 +59,14 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
             value = value.replace(/(\d{4})(\d)/, '$1-$2');
         }
         setDocument(value);
-        
-        // Validação real usando o service
-        // const isValid = subscriptionService.validateDocument(value, accountType);
-        // Pode ser usado para mostrar erro visual
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        // Validação final antes de salvar
-        const isValidDoc = subscriptionService.validateDocument(document, accountType);
+        const type = accountType === 'BUSINESS' ? 'BUSINESS' : 'PERSONAL';
+        const isValidDoc = validateDoc(document, type);
+        
         if(!isValidDoc && document.length > 0) {
             alert(`Documento inválido para ${accountType === 'PERSONAL' ? 'Pessoa Física' : 'Pessoa Jurídica'}`);
             return;
