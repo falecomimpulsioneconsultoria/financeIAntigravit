@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { User } from '../../types';
+import { User, Plan, PaymentStatus } from '../../types';
 import { authService } from '../../services/authService';
 import { dataService } from '../../services/dataService';
+import { subscriptionService } from '../../services/subscriptionService';
+import { InvoiceList } from '../subscription/InvoiceList';
 import { Button } from '../ui/Button';
 
 interface ClientManagementViewProps {
@@ -24,22 +26,27 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
     const [isLoading, setIsLoading] = useState(false);
     const [plans, setPlans] = useState<any[]>([]);
 
+    const [invoices, setInvoices] = useState<any[]>([]);
+
     useEffect(() => {
         dataService.getPlans().then(setPlans);
-    }, []);
+        // Mock de faturas
+        setInvoices(subscriptionService.getInvoices(user.id));
+    }, [user.id]);
 
     const handlePlanChange = (selectedPlanId: string) => {
         setPlanId(selectedPlanId);
         const plan = plans.find(p => p.id === selectedPlanId);
         if (plan) {
             setSubscriptionPrice(Number(plan.price));
-            const newExp = authService.calculateExpiration(plan.interval);
+            const newExp = subscriptionService.calculateNextDue(new Date().toISOString(), plan.interval);
             setExpirationDate(newExp.split('T')[0]);
         }
     };
 
     const handleDocumentChange = (val: string) => {
         let value = val.replace(/\D/g, '');
+        // Validação visual simples no input mask
         if (accountType === 'PERSONAL') {
             if (value.length > 11) value = value.slice(0, 11);
             value = value.replace(/(\d{3})(\d)/, '$1.$2');
@@ -53,10 +60,22 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
             value = value.replace(/(\d{4})(\d)/, '$1-$2');
         }
         setDocument(value);
+        
+        // Validação real usando o service
+        // const isValid = subscriptionService.validateDocument(value, accountType);
+        // Pode ser usado para mostrar erro visual
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Validação final antes de salvar
+        const isValidDoc = subscriptionService.validateDocument(document, accountType);
+        if(!isValidDoc && document.length > 0) {
+            alert(`Documento inválido para ${accountType === 'PERSONAL' ? 'Pessoa Física' : 'Pessoa Jurídica'}`);
+            return;
+        }
+
         setIsLoading(true);
         try {
             await onSave(user.id, {
@@ -153,9 +172,14 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
 
                                 <div>
                                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Documento Oficial ({accountType === 'PERSONAL' ? 'CPF' : 'CNPJ'})</label>
-                                    <input type="text" value={document} onChange={e => handleDocumentChange(e.target.value)} className="w-full px-5 py-3.5 bg-gray-50 hover:bg-gray-100 focus:bg-white border-none rounded-xl focus:ring-2 focus:ring-blue-500/20 text-gray-900 font-medium transition-all outline-none" placeholder={accountType === 'PERSONAL' ? "000.000.000-00" : "00.000.000/0000-00"} />
+                                    <input type="text" value={document} onChange={e => handleDocumentChange(e.target.value)} className="w-full px-5 py-3.5 bg-gray-50 hover:bg-gray-100 focus:bg-white border-none rounded-xl focus:ring-2 focus:ring-blue-500/20 text-gray-900 font-medium transition-all outline-none checked:bg-blue-500" placeholder={accountType === 'PERSONAL' ? "000.000.000-00" : "00.000.000/0000-00"} />
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Lista de Faturas */}
+                        <div className="mt-8 pt-8 border-t border-gray-100">
+                             <InvoiceList invoices={invoices} />
                         </div>
                     </div>
 
@@ -191,7 +215,8 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
                             <div className={`p-6 rounded-[1.5rem] border transition-all ${
                                 paymentStatus === 'PAID' ? 'bg-green-50 border-green-100 text-green-700' : 
                                 paymentStatus === 'OVERDUE' ? 'bg-amber-50 border-amber-100 text-amber-700' : 
-                                'bg-amber-50 border-amber-100 text-amber-700'
+                                paymentStatus === 'SUSPENDED' ? 'bg-red-50 border-red-100 text-red-700' :
+                                'bg-gray-50 border-gray-100 text-gray-700'
                             }`}>
                                 <label className="block text-[10px] font-black opacity-60 uppercase tracking-widest mb-3">Status de Cobrança</label>
                                 <div className="relative">
@@ -199,12 +224,14 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
                                         <option value="PAID">PAGAMENTO OK</option>
                                         <option value="PENDING">PENDENTE</option>
                                         <option value="OVERDUE">ATRASADO</option>
+                                        <option value="SUSPENDED">SUSPENSO (BLOQUEADO)</option>
                                     </select>
                                     <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none">
                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                                     </div>
                                 </div>
                             </div>
+
 
                             <div className="px-1">
                                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Expira em</label>

@@ -5,7 +5,7 @@ export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'USER';
 export type RecurrenceType = 'FIXED' | 'INSTALLMENT';
 export type AccountType = 'PERSONAL' | 'BUSINESS'; // Perfil do Usuário
 export type BankAccountType = 'CHECKING' | 'INVESTMENT' | 'CASH'; // Tipo da Conta Bancária
-export type PaymentStatus = 'PAID' | 'PENDING' | 'OVERDUE'; // Pago, Pendente, Atrasado
+export type PaymentStatus = 'PAID' | 'PENDING' | 'OVERDUE' | 'SUSPENDED'; // Pago, Pendente, Atrasado, Suspenso
 export type PlanInterval = 'MONTHLY' | 'QUARTERLY' | 'SEMESTER' | 'ANNUAL';
 
 // Mapeamento para o DRE de Representação Comercial
@@ -18,6 +18,25 @@ export type DreCategory =
   | 'DRE_EXPENSE_ADMIN'        // (-) Despesas Administrativas (Contador, Aluguel)
   | 'DRE_FINANCIAL_INCOME'     // (+) Receita Financeira
   | 'DRE_FINANCIAL_EXPENSE';   // (-) Despesa Financeira
+
+export interface Invoice {
+    id: string;
+    userId: string;
+    amount: number;
+    status: PaymentStatus;
+    dueDate: string;
+    paidAt?: string;
+    referenceMonth: string; // MM/YYYY
+    pdfUrl?: string; // Link para boleto/nf
+}
+
+export interface WebhookPayload {
+    event: 'PAYMENT_RECEIVED' | 'PAYMENT_FAILED';
+    userId: string;
+    amount: number;
+    transactionId: string;
+    gateway: 'STRIPE' | 'MERCADOPAGO' | 'ASAAS';
+}
 
 export interface UserPermissions {
   viewDashboard: boolean;
@@ -54,9 +73,12 @@ export interface User {
   createdAt: string; // ISO Date
   expirationDate: string; // ISO Date (data_vencimento)
   subscriptionStartDate?: string; // ISO Date (data_inicio_assinatura)
-  paymentStatus: PaymentStatus; // Pago, Pendente, Atrasado
+  paymentStatus: PaymentStatus; // Pago, Pendente, Atrasado, Suspenso
   subscriptionPrice?: number; // Valor padrão a ser cobrado (valor_recorrente)
   planId?: string; // ID do plano selecionado
+  billingAttempts?: number; // Contador de tentativas de cobrança
+  lastInvoiceId?: string; // Link para última fatura
+
 
   // New Profile Fields
   accountType: AccountType;

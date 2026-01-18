@@ -19,6 +19,9 @@ import { Transaction, Account, Category, FinancialSummary, User, DashboardConfig
 import { AuthScreen } from './components/Auth';
 import { authService } from './services/authService';
 import { dataService } from './services/dataService';
+import { PaymentWall } from './components/subscription/PaymentWall';
+import { SuspensionBanner } from './components/subscription/SuspensionBanner';
+import { subscriptionService } from './services/subscriptionService';
 import { ConfirmModal } from './components/ui/ConfirmModal';
 
 const DEFAULT_DASHBOARD_CONFIG: DashboardConfig = {
@@ -684,7 +687,7 @@ export default function App() {
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>
           </button>
         </header>
-        {currentUser && <SubscriptionAlert user={currentUser} />}
+        {currentUser && currentUser.paymentStatus === 'SUSPENDED' && <SuspensionBanner />}
 
 
         <div className={`flex-1 w-full max-w-[1600px] mx-auto relative ${activeView === 'TRANSACTIONS' ? 'overflow-hidden pt-0 pb-0 px-0' : 'overflow-y-auto pt-8 pb-20 px-4 sm:px-6 lg:px-8'}`}>

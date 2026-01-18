@@ -9,6 +9,7 @@ export const AdminDashboard: React.FC = () => {
         totalUsers: 0,
         activeUsers: 0,
         overdueUsers: 0,
+        suspendedUsers: 0,
         mrr: 0, // Monthly Recurring Revenue
         totalManagedBalance: 0,
         newUsersThisMonth: 0,
@@ -18,6 +19,7 @@ export const AdminDashboard: React.FC = () => {
         forecast60d: 0,
         forecast90d: 0
     });
+
     const [isLoading, setIsLoading] = useState(true);
     const [recentUsers, setRecentUsers] = useState<User[]>([]);
 
@@ -60,6 +62,7 @@ export const AdminDashboard: React.FC = () => {
                 totalUsers: clientUsers.length,
                 activeUsers: activeUsersCount,
                 overdueUsers: overdueUsersCount,
+                suspendedUsers: clientUsers.filter(u => u.paymentStatus === 'SUSPENDED').length,
                 mrr,
                 totalManagedBalance,
                 newUsersThisMonth: newUsersCount,
@@ -108,6 +111,36 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Metricas Principais - Foco em SaaS */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 border-b-4 border-b-green-500">
+                    <div className="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    </div>
+                    <div>
+                        <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Assinaturas Ativas</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">{stats.activeUsers}</p>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 border-b-4 border-b-amber-500">
+                    <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <div>
+                        <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Vencidas (Atraso)</p>
+                        <p className="text-2xl font-bold text-amber-600 mt-1">{stats.overdueUsers}</p>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 border-b-4 border-b-red-600">
+                    <div className="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                    </div>
+                    <div>
+                        <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Suspensas (Bloqueio)</p>
+                        <p className="text-2xl font-bold text-red-600 mt-1">{stats.suspendedUsers}</p>
+                    </div>
+                </div>
+
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 border-b-4 border-b-blue-500">
                     <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -115,36 +148,6 @@ export const AdminDashboard: React.FC = () => {
                     <div>
                         <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">MRR (Faturamento)</p>
                         <p className="text-2xl font-bold text-gray-900 mt-1">R$ {stats.mrr.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                    </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 border-b-4 border-b-purple-500">
-                    <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                    </div>
-                    <div>
-                        <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">LTV Estimado</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">R$ {stats.ltv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                    </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 border-b-4 border-b-red-500">
-                    <div className="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    </div>
-                    <div>
-                        <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Churn Rate</p>
-                        <p className="text-2xl font-bold text-red-600 mt-1">{stats.churnRate.toFixed(1)}%</p>
-                    </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 border-b-4 border-b-green-500">
-                    <div className="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-9.618 5.04c-.2 0-.398.02-.592.058V15.52a11.963 11.963 0 0010.21 11.838 11.963 11.963 0 0010.21-11.838V8.042c-.194-.038-.392-.058-.592-.058z" /></svg>
-                    </div>
-                    <div>
-                        <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Retenção Ativa</p>
-                        <p className="text-2xl font-bold text-green-600 mt-1">{stats.totalUsers > 0 ? (100 - stats.churnRate).toFixed(1) : 0}%</p>
                     </div>
                 </div>
             </div>
