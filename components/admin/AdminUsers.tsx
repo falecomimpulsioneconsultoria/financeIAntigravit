@@ -5,14 +5,13 @@ import { authService } from '../../services/authService';
 import { dataService } from '../../services/dataService';
 import { Button } from '../ui/Button';
 
-interface UserEditModalProps {
+interface ClientManagementViewProps {
     user: User;
-    isOpen: boolean;
     onClose: () => void;
     onSave: (userId: string, updates: Partial<User>) => Promise<void>;
 }
 
-const UserEditModal: React.FC<UserEditModalProps> = ({ user, isOpen, onClose, onSave }) => {
+const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClose, onSave }) => {
     const [name, setName] = useState(user.name);
     const [email, setEmail] = useState(user.email);
     const [accountType, setAccountType] = useState(user.accountType);
@@ -56,8 +55,6 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ user, isOpen, onClose, on
         setDocument(value);
     };
 
-    if (!isOpen) return null;
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
@@ -83,79 +80,151 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ user, isOpen, onClose, on
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-scale-in">
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
-                    <h3 className="text-lg font-bold text-gray-900">Editar Cadastro: {user.name}</h3>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
-                        <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
+        <div className="space-y-6 animate-fade-in-up">
+            <div className="flex items-center gap-4 mb-2">
+                <button onClick={onClose} className="p-2 hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-200 text-gray-500 hover:text-gray-900 group">
+                    <svg className="w-6 h-6 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </button>
+                <div>
+                    <h2 className="text-2xl font-black text-gray-900">Gerenciar Cliente</h2>
+                    <p className="text-sm text-gray-500 font-medium">{user.name} • {user.email}</p>
                 </div>
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="col-span-2">
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nome / Razão Social</label>
-                            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required />
+            </div>
+
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                {/* Coluna da Esquerda: Dados Cadastrais */}
+                <div className="lg:col-span-3 space-y-8">
+                    <div className="bg-white p-10 rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-2 h-full bg-blue-600"></div>
+                        
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-xl font-black text-gray-900 flex items-center gap-3">
+                                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                                    <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                </div>
+                                Dados do Perfil
+                            </h3>
+                            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-2xl border border-gray-100">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">ID:</span>
+                                <span className="text-[10px] font-mono font-bold text-gray-600 uppercase">{user.id.slice(0, 8)}...</span>
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">E-mail</label>
-                            <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Role (Papel)</label>
-                            <select value={role} onChange={e => setRole(e.target.value as any)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="USER">USER</option>
-                                <option value="ADMIN">ADMIN</option>
-                                <option value="SUPER_ADMIN">SUPER_ADMIN</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tipo de Perfil</label>
-                            <select value={accountType} onChange={e => setAccountType(e.target.value as any)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="PERSONAL">Pessoal (CPF)</option>
-                                <option value="BUSINESS">Empresa (CNPJ)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">CPF/CNPJ</label>
-                            <input type="text" value={document} onChange={e => handleDocumentChange(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder={accountType === 'PERSONAL' ? "000.000.000-00" : "00.000.000/0000-00"} />
-                        </div>
-                        <div className="border-t border-gray-100 col-span-2 pt-4">
-                            <h4 className="text-sm font-bold text-gray-900 mb-3">Controle de Assinatura</h4>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Plano</label>
-                            <select value={planId} onChange={e => handlePlanChange(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="">Selecione um plano</option>
-                                {plans.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name} - R$ {Number(p.price).toFixed(2)}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Status Pagamento</label>
-                            <select value={paymentStatus} onChange={e => setPaymentStatus(e.target.value as any)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="PAID">Pago</option>
-                                <option value="PENDING">Pendente</option>
-                                <option value="OVERDUE">Atrasado</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Vencimento (Overrule)</label>
-                            <input type="date" value={expirationDate} onChange={e => setExpirationDate(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Valor Recorrente</label>
-                            <input type="number" value={subscriptionPrice} onChange={e => setSubscriptionPrice(Number(e.target.value))} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="md:col-span-2">
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Nome / Razão Social</label>
+                                <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all font-bold text-gray-800 text-lg shadow-sm" required />
+                            </div>
+                            
+                            <div>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3 px-1">E-mail de Contato</label>
+                                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-6 py-4 bg-white border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-gray-700" required />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Nível Administrativo</label>
+                                <select value={role} onChange={e => setRole(e.target.value as any)} className="w-full px-6 py-4 bg-white border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-indigo-600">
+                                    <option value="USER">USUÁRIO PADRÃO (CLIENTE)</option>
+                                    <option value="ADMIN">ADMINISTRADOR DO SISTEMA</option>
+                                    <option value="SUPER_ADMIN">SUPER USUÁRIO (ROOT)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Categoria de Entidade</label>
+                                <select value={accountType} onChange={e => setAccountType(e.target.value as any)} className="w-full px-6 py-4 bg-white border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-gray-700">
+                                    <option value="PERSONAL">PESSOA FÍSICA (CPF)</option>
+                                    <option value="BUSINESS">PESSOA JURÍDICA (CNPJ)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Documento Oficial ({accountType === 'PERSONAL' ? 'CPF' : 'CNPJ'})</label>
+                                <input type="text" value={document} onChange={e => handleDocumentChange(e.target.value)} className="w-full px-6 py-4 bg-white border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-gray-700" placeholder={accountType === 'PERSONAL' ? "000.000.000-00" : "00.000.000/0000-00"} />
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex gap-3 pt-4">
-                        <Button type="button" variant="outline" className="flex-1" onClick={onClose}>Cancelar</Button>
-                        <Button type="submit" className="flex-1" isLoading={isLoading}>Salvar Alterações</Button>
+                    <div className="flex gap-6">
+                        <Button type="button" variant="outline" className="h-16 px-10 rounded-2xl font-black uppercase tracking-widest text-xs flex-1 border-2 border-gray-200 hover:bg-gray-50 transition-all" onClick={onClose}>Abandonar Alterações</Button>
+                        <Button type="submit" className="h-16 px-10 rounded-2xl font-black uppercase tracking-widest text-xs flex-1 bg-gradient-to-r from-blue-600 to-indigo-700 shadow-xl shadow-blue-200 hover:scale-[1.02] transition-all" isLoading={isLoading}>Consolidar Mudanças</Button>
                     </div>
-                </form>
-            </div>
+                </div>
+
+                {/* Coluna da Direita: Status e Assinatura */}
+                <div className="lg:col-span-1 space-y-8">
+                    <div className="bg-white p-10 rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100 relative overflow-hidden">
+                        <div className={`absolute top-0 left-0 w-2 h-full ${paymentStatus === 'PAID' ? 'bg-green-500' : paymentStatus === 'OVERDUE' ? 'bg-red-500' : 'bg-amber-500'}`}></div>
+                        
+                        <h3 className="text-xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+                                <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                            </div>
+                            Financeiro
+                        </h3>
+
+                        <div className="space-y-8">
+                            <div className="p-6 bg-gray-50 rounded-[2rem] border border-gray-100 group hover:bg-blue-50/50 transition-colors">
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Plano Atual</label>
+                                <select value={planId} onChange={e => handlePlanChange(e.target.value)} className="w-full bg-transparent outline-none font-black text-xl text-gray-900 appearance-none cursor-pointer">
+                                    <option value="">NENHUM</option>
+                                    {plans.map(p => (
+                                        <option key={p.id} value={p.id}>{p.name.toUpperCase()}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className={`p-6 rounded-[2rem] border-2 transition-all ${
+                                paymentStatus === 'PAID' ? 'bg-green-50 border-green-100 text-green-700' : 
+                                paymentStatus === 'OVERDUE' ? 'bg-red-50 border-red-100 text-red-700' : 
+                                'bg-amber-50 border-amber-100 text-amber-700'
+                            }`}>
+                                <label className="block text-[10px] font-black opacity-60 uppercase tracking-widest mb-3 px-1">Status de Cobrança</label>
+                                <select value={paymentStatus} onChange={e => setPaymentStatus(e.target.value as any)} className="w-full bg-transparent outline-none font-black text-base uppercase cursor-pointer">
+                                    <option value="PAID">PAGAMENTO OK</option>
+                                    <option value="PENDING">PENDENTE</option>
+                                    <option value="OVERDUE">ATRASADO</option>
+                                </select>
+                            </div>
+
+                            <div className="px-1">
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Expira em</label>
+                                <input type="date" value={expirationDate} onChange={e => setExpirationDate(e.target.value)} className="w-full px-6 py-4 bg-white border-2 border-gray-100 rounded-2xl focus:border-blue-500 outline-none transition-all font-bold text-lg" />
+                            </div>
+
+                            <div className="px-1">
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Valor Unitário</label>
+                                <div className="relative group">
+                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-gray-400 group-focus-within:text-blue-500 transition-colors">R$</span>
+                                    <input type="number" step="0.01" value={subscriptionPrice} onChange={e => setSubscriptionPrice(Number(e.target.value))} className="w-full pl-14 pr-6 py-4 bg-white border-2 border-gray-100 rounded-2xl focus:border-blue-500 outline-none transition-all font-black text-2xl text-gray-800" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-10 rounded-[2rem] shadow-2xl text-white relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full -mr-24 -mt-24 blur-3xl group-hover:bg-blue-500/20 transition-all duration-700"></div>
+                        <h4 className="text-[10px] font-black uppercase tracking-[4px] text-blue-400/80 mb-6">Métricas da Conta</h4>
+                        <div className="space-y-6">
+                            <div className="flex flex-col gap-1">
+                                <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Membro Desde</span>
+                                <span className="font-bold text-lg">{new Date(user.createdAt).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                            </div>
+                            <div className="pt-4 border-t border-white/5 flex flex-col gap-1">
+                                <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Acesso ao App</span>
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.5)]' : 'bg-red-400'}`}></div>
+                                    <span className={`font-black uppercase tracking-widest text-sm ${user.isActive ? 'text-green-400' : 'text-red-400'}`}>
+                                        {user.isActive ? 'CONTA ATIVA' : 'CONTA BLOQUEADA'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     );
 };
@@ -164,7 +233,6 @@ export const AdminUsers: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [filterStatus, setFilterStatus] = useState<'ALL' | 'OVERDUE' | 'EXPIRING_SOON'>('ALL');
 
     const loadUsers = async () => {
@@ -256,8 +324,19 @@ export const AdminUsers: React.FC = () => {
         return { totalUsers: clientUsers.length, activeCount, overdueCount, totalRevenue };
     }, [users]);
 
+    if (editingUser) {
+        return (
+            <ClientManagementView
+                user={editingUser}
+                onClose={() => setEditingUser(null)}
+                onSave={handleSaveUpdates}
+            />
+        );
+    }
+
     return (
         <div className="space-y-6 animate-fade-in">
+            {/* Header and Filters */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
                 <div>
                     <h2 className="text-xl font-bold text-gray-900">Gestão de Clientes & Assinaturas</h2>
@@ -310,6 +389,7 @@ export const AdminUsers: React.FC = () => {
                 </div>
             </div>
 
+            {/* User List */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-gray-600">
@@ -327,7 +407,6 @@ export const AdminUsers: React.FC = () => {
                                 const now = new Date();
                                 const expirationDate = new Date(user.expirationDate);
                                 const isExpired = now > expirationDate || user.paymentStatus === 'OVERDUE';
-                                const isSelf = user.role === 'SUPER_ADMIN';
                                 const isStaff = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
 
                                 let badge;
@@ -341,7 +420,7 @@ export const AdminUsers: React.FC = () => {
                                     : "bg-red-50 text-red-700 border-red-200 hover:bg-green-50 hover:text-green-600";
 
                                 return (
-                                    <tr key={user.id} className={`hover:bg-gray-50 transition-colors ${isExpired && !isSelf ? 'bg-red-50/20' : ''}`}>
+                                    <tr key={user.id} className={`hover:bg-gray-50 transition-colors ${isExpired && !isStaff ? 'bg-red-50/20' : ''}`}>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs shrink-0">
@@ -368,7 +447,7 @@ export const AdminUsers: React.FC = () => {
                                         <td className="px-6 py-4">
                                             <input
                                                 type="date"
-                                                disabled={isSelf}
+                                                disabled={isStaff}
                                                 className="border rounded px-2 py-1 text-sm bg-white"
                                                 value={new Date(user.expirationDate).toISOString().split('T')[0]}
                                                 onChange={(e) => handleDateChange(user, e.target.value)}
@@ -376,7 +455,12 @@ export const AdminUsers: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <Button size="sm" variant="outline" onClick={() => { setEditingUser(user); setIsEditModalOpen(true); }} className="px-3 py-1.5 flex items-center gap-1.5 font-bold text-[10px]">
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="outline" 
+                                                    onClick={() => setEditingUser(user)} 
+                                                    className="px-3 py-1.5 flex items-center gap-1.5 font-bold text-[10px]"
+                                                >
                                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
                                                     GERENCIAR
                                                 </Button>
@@ -389,15 +473,6 @@ export const AdminUsers: React.FC = () => {
                     </table>
                 </div>
             </div>
-
-            {editingUser && (
-                <UserEditModal
-                    user={editingUser}
-                    isOpen={isEditModalOpen}
-                    onClose={() => { setIsEditModalOpen(false); setEditingUser(null); }}
-                    onSave={handleSaveUpdates}
-                />
-            )}
         </div>
     );
 };
