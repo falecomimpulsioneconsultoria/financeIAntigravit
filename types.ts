@@ -5,6 +5,8 @@ export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'USER';
 export type RecurrenceType = 'FIXED' | 'INSTALLMENT';
 export type AccountType = 'PERSONAL' | 'BUSINESS'; // Perfil do Usuário
 export type BankAccountType = 'CHECKING' | 'INVESTMENT' | 'CASH'; // Tipo da Conta Bancária
+export type PaymentStatus = 'PAID' | 'PENDING' | 'OVERDUE'; // Pago, Pendente, Atrasado
+export type PlanInterval = 'MONTHLY' | 'QUARTERLY' | 'SEMESTER' | 'ANNUAL';
 
 // Mapeamento para o DRE de Representação Comercial
 export type DreCategory =
@@ -35,6 +37,14 @@ export interface SubUser {
   permissions: UserPermissions;
 }
 
+export interface Plan {
+  id: string;
+  name: string;
+  interval: PlanInterval;
+  price: number;
+  description?: string;
+}
+
 export interface User {
   id: string;
   name: string; // Nome Completo ou Razão Social
@@ -42,10 +52,11 @@ export interface User {
   role: UserRole;
   isActive: boolean;
   createdAt: string; // ISO Date
-  expirationDate: string; // ISO Date
-  lastPaymentDate?: string; // ISO Date
-  lastPaymentAmount?: number;
-  subscriptionPrice?: number; // Valor padrão a ser cobrado
+  expirationDate: string; // ISO Date (data_vencimento)
+  subscriptionStartDate?: string; // ISO Date (data_inicio_assinatura)
+  paymentStatus: PaymentStatus; // Pago, Pendente, Atrasado
+  subscriptionPrice?: number; // Valor padrão a ser cobrado (valor_recorrente)
+  planId?: string; // ID do plano selecionado
 
   // New Profile Fields
   accountType: AccountType;

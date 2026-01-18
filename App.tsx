@@ -14,6 +14,7 @@ import { AdminPlans } from './components/admin/AdminPlans';
 import { AdminPayments } from './components/admin/AdminPayments';
 import { AdminSettings } from './components/admin/AdminSettings';
 import { InvestmentDashboard } from './components/investments/InvestmentDashboard';
+import { SubscriptionAlert } from './components/subscription/SubscriptionAlert';
 import { Transaction, Account, Category, FinancialSummary, User, DashboardConfig, UserPermissions, PaymentMethod, TransactionType } from './types';
 import { AuthScreen } from './components/Auth';
 import { authService } from './services/authService';
@@ -683,6 +684,8 @@ export default function App() {
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>
           </button>
         </header>
+        {currentUser && <SubscriptionAlert user={currentUser} />}
+
 
         <div className={`flex-1 w-full max-w-[1600px] mx-auto relative ${activeView === 'TRANSACTIONS' ? 'overflow-hidden pt-0 pb-0 px-0' : 'overflow-y-auto pt-8 pb-20 px-4 sm:px-6 lg:px-8'}`}>
           {loadingData && (

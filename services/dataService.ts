@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabaseClient';
 import {
   User, Account, Category, Transaction, FinancialSummary,
-  InvestmentAsset, InvestmentType, InvestmentTransaction, PaymentMethod
+  InvestmentAsset, InvestmentType, InvestmentTransaction, PaymentMethod, Plan
 } from '../types';
 
 export const dataService = {
@@ -595,5 +595,11 @@ export const dataService = {
       console.error('Upload exception:', error);
       return null;
     }
+  },
+  // --- PLANS ---
+  getPlans: async (): Promise<Plan[]> => {
+    const { data, error } = await supabase.from('plans').select('*');
+    if (error) return [];
+    return data || [];
   }
 };

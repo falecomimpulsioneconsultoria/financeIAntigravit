@@ -37,7 +37,10 @@ export const authService = {
       isActive: profile.is_active,
       createdAt: profile.created_at,
       expirationDate: profile.expiration_date,
+      subscriptionStartDate: profile.subscription_start_date,
+      paymentStatus: profile.payment_status || 'PENDING',
       subscriptionPrice: profile.subscription_price,
+      planId: profile.plan_id,
       accountType: profile.account_type,
       document: profile.document,
       subUsers: profile.sub_users || [],
@@ -56,6 +59,10 @@ export const authService = {
     if (updates.accountType) dbUpdates.account_type = updates.accountType;
     if (updates.isActive !== undefined) dbUpdates.is_active = updates.isActive;
     if (updates.expirationDate) dbUpdates.expiration_date = updates.expirationDate;
+    if (updates.subscriptionStartDate) dbUpdates.subscription_start_date = updates.subscriptionStartDate;
+    if (updates.paymentStatus) dbUpdates.payment_status = updates.paymentStatus;
+    if (updates.subscriptionPrice !== undefined) dbUpdates.subscription_price = updates.subscriptionPrice;
+    if (updates.planId) dbUpdates.plan_id = updates.planId;
     if (updates.subUsers) dbUpdates.sub_users = updates.subUsers;
     // ... map other fields
 
@@ -158,6 +165,7 @@ export const authService = {
       expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       accountType,
       document,
+      paymentStatus: 'PENDING' as any,
       subUsers: [],
       activePermissions: FULL_ACCESS
     };
@@ -193,7 +201,10 @@ export const authService = {
       isActive: profile.is_active,
       createdAt: profile.created_at,
       expirationDate: profile.expiration_date,
+      subscriptionStartDate: profile.subscription_start_date,
+      paymentStatus: profile.payment_status || 'PENDING',
       subscriptionPrice: profile.subscription_price,
+      planId: profile.plan_id,
       accountType: profile.account_type,
       document: profile.document,
       subUsers: profile.sub_users || [],
@@ -243,10 +254,23 @@ export const authService = {
       isActive: p.is_active,
       createdAt: p.created_at,
       expirationDate: p.expiration_date,
+      subscriptionStartDate: p.subscription_start_date,
+      paymentStatus: p.payment_status,
       subscriptionPrice: p.subscription_price,
+      planId: p.plan_id,
       accountType: p.account_type,
       document: p.document,
       subUsers: p.sub_users,
     }));
+  },
+
+  calculateExpiration: (planInterval: 'MONTHLY' | 'QUARTERLY' | 'SEMESTER' | 'ANNUAL', startDate?: Date): string => {
+    const start = startDate || new Date();
+    const exp = new Date(start);
+    if (planInterval === 'MONTHLY') exp.setMonth(exp.getMonth() + 1);
+    else if (planInterval === 'QUARTERLY') exp.setMonth(exp.getMonth() + 3);
+    else if (planInterval === 'SEMESTER') exp.setMonth(exp.getMonth() + 6);
+    else if (planInterval === 'ANNUAL') exp.setFullYear(exp.getFullYear() + 1);
+    return exp.toISOString();
   }
 };
