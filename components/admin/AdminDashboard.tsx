@@ -10,7 +10,7 @@ export const AdminDashboard: React.FC = () => {
         activeUsers: 0,
         overdueUsers: 0,
         totalRevenue: 0,
-        totalAccounts: 0,
+        totalManagedBalance: 0,
         totalTransactions: 0,
         newUsersThisMonth: 0
     });
@@ -33,13 +33,14 @@ export const AdminDashboard: React.FC = () => {
             const overdueUsersCount = clientUsers.filter(u => new Date(u.expirationDate) < now).length;
             const totalRevenue = clientUsers.reduce((acc, u) => acc + (u.subscriptionPrice || 0), 0);
             const newUsersCount = clientUsers.filter(u => new Date(u.createdAt) >= firstDayOfMonth).length;
+            const totalManagedBalance = allAccounts.reduce((acc, accnt) => acc + (accnt.balance || 0), 0);
 
             setStats({
                 totalUsers: clientUsers.length,
                 activeUsers: activeUsersCount,
                 overdueUsers: overdueUsersCount,
                 totalRevenue,
-                totalAccounts: allAccounts.length,
+                totalManagedBalance,
                 totalTransactions: 0, 
                 newUsersThisMonth: newUsersCount
             });
@@ -197,8 +198,8 @@ export const AdminDashboard: React.FC = () => {
                         </h3>
                         <div className="space-y-4">
                             <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-500 font-medium">Contas Bancárias</span>
-                                <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg text-xs font-bold">{stats.totalAccounts}</span>
+                                <span className="text-sm text-gray-500 font-medium">Montante Gerenciado</span>
+                                <span className="text-gray-900 text-xs font-bold">R$ {stats.totalManagedBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-gray-500 font-medium">Transações Estimadas</span>
