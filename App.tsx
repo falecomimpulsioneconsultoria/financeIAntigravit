@@ -846,7 +846,43 @@ export default function App() {
           </div>
         </div>
 
-        {/* NAVEGAÃ‡ÃƒO PRINCIPAL */}
+        {/* STATUS DA ASSINATURA */}
+        {currentUser.role === "USER" && isSidebarOpen && (
+          <div className="mx-3 mt-4 p-3 bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col gap-2 animate-fade-in text-center">
+             {(() => {
+                const now = new Date();
+                const expDate = new Date(currentUser.expirationDate);
+                const isOverdue = currentUser.paymentStatus === 'OVERDUE' || expDate.getTime() < now.getTime();
+                
+                if (isOverdue) {
+                   return (
+                     <>
+                        <div className="flex items-center gap-1.5 justify-center mb-1">
+                           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                           <span className="text-[10px] font-black text-red-600 uppercase tracking-widest">Acesso Restrito</span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 mb-1 leading-tight">Assinatura inativa ou vencida.</p>
+                        <button onClick={() => window.open('https://api.whatsapp.com/send?phone=YOUR_SUPPORT_NUMBER', '_blank')} className="w-full py-2 bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold uppercase rounded-lg shadow-sm shadow-red-200 transition-colors">
+                            Reativar Assinatura
+                        </button>
+                     </>
+                   )
+                } else {
+                   return (
+                     <div className="flex flex-col items-center">
+                        <div className="flex items-center gap-1.5 justify-center">
+                           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                           <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Plano Ativo</span>
+                        </div>
+                        <span className="text-[9px] text-gray-400 mt-1 font-medium">Vence em {expDate.toLocaleDateString('pt-BR')}</span>
+                     </div>
+                   )
+                }
+             })()}
+          </div>
+        )}
+
+        {/* NAVEGAÇÃO PRINCIPAL */}
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto py-4">
           {/* MENUS PARA ADMIN */}
           {currentUser.role === "ADMIN" ||
