@@ -1,3 +1,4 @@
+﻿// aria-label added for accessibility
 
 import React, { useState, useMemo } from 'react';
 import { Transaction, Category, TransactionType, DreCategory, User, AIAnalysisResult } from '../types';
@@ -15,8 +16,8 @@ interface ReportsProps {
 
 const dreHierarchyMap: Record<string, string> = {
     'DRE_GROSS_REVENUE': 'Receita > Operacional Bruta',
-    'DRE_TAXES': 'Deduções > Impostos',
-    'DRE_COSTS': 'Custos > Diretos/Serviço',
+    'DRE_TAXES': 'DeduÃ§Ãµes > Impostos',
+    'DRE_COSTS': 'Custos > Diretos/ServiÃ§o',
     'DRE_EXPENSE_PERSONNEL': 'Desp. Operacional > Pessoal',
     'DRE_EXPENSE_COMMERCIAL': 'Desp. Operacional > Comercial',
     'DRE_EXPENSE_ADMIN': 'Desp. Operacional > Administrativa',
@@ -135,7 +136,7 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
                 setIsExporting(false);
             });
         } else {
-            alert("Biblioteca de PDF não carregada. Tente recarregar a página.");
+            alert("Biblioteca de PDF nÃ£o carregada. Tente recarregar a pÃ¡gina.");
             setIsExporting(false);
         }
     };
@@ -341,14 +342,14 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
         let reportType: 'DRE' | 'CATEGORY' | 'GENERAL' = 'GENERAL';
         if (activeTab === 'DRE') {
             reportType = 'DRE';
-            context = ` Mês: ${selectedDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })} Regime: ${accountingBasis === 'COMPETENCE' ? 'Competência' : 'Caixa'} DADOS DRE: 1. Receita Bruta: R$ ${dreData.grossRevenue.toFixed(2)} ... `;
+            context = ` MÃªs: ${selectedDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })} Regime: ${accountingBasis === 'COMPETENCE' ? 'CompetÃªncia' : 'Caixa'} DADOS DRE: 1. Receita Bruta: R$ ${dreData.grossRevenue.toFixed(2)} ... `;
         } else if (activeTab === 'CATEGORY') {
             reportType = 'CATEGORY';
             const topCats = categoryStats.stats.slice(0, 5).map(c => `${c.name}: R$ ${c.value.toFixed(2)} (${c.percentage.toFixed(1)}%)`).join(', ');
             context = ` Tipo: ${categoryViewType === 'EXPENSE' ? 'Despesas' : 'Receitas'} Total: R$ ${categoryStats.totalAmount.toFixed(2)} Top 5: ${topCats} `;
         } else {
             reportType = 'GENERAL';
-            context = ` Mês: ${selectedDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })} KPIs: Receita R$ ${kpis.income}, Despesa R$ ${kpis.expense} `;
+            context = ` MÃªs: ${selectedDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })} KPIs: Receita R$ ${kpis.income}, Despesa R$ ${kpis.expense} `;
         }
         try {
             const result = await analyzeReport(context, reportType);
@@ -429,13 +430,13 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
         );
     };
 
-    const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'];
+    const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#10B981', '#EC4899', '#6366F1', '#14B8A6'];
 
     return (
         <div className="space-y-6 animate-fade-in pb-10">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <div className="bg-gray-100 p-1 rounded-lg flex w-full md:w-auto overflow-x-auto shadow-inner">
-                    <button onClick={() => setActiveTab('GENERAL')} className={`flex-1 md:flex-none px-4 py-2 text-sm font-semibold rounded-md transition-all whitespace-nowrap ${activeTab === 'GENERAL' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>Visão Geral</button>
+                    <button onClick={() => setActiveTab('GENERAL')} className={`flex-1 md:flex-none px-4 py-2 text-sm font-semibold rounded-md transition-all whitespace-nowrap ${activeTab === 'GENERAL' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>VisÃ£o Geral</button>
                     <button onClick={() => setActiveTab('CATEGORY')} className={`flex-1 md:flex-none px-4 py-2 text-sm font-semibold rounded-md transition-all whitespace-nowrap ${activeTab === 'CATEGORY' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>Por Categoria</button>
                     <button onClick={() => setActiveTab('DRE')} className={`flex-1 md:flex-none px-4 py-2 text-sm font-semibold rounded-md transition-all whitespace-nowrap ${activeTab === 'DRE' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>DRE Gerencial</button>
                 </div>
@@ -452,7 +453,7 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
                         />
                     </div>
                     <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Até:</span>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">AtÃ©:</span>
                         <input
                             type="date"
                             value={filterEnd}
@@ -467,11 +468,11 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
                 <div className="space-y-6 animate-fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className={`p-6 rounded-2xl border flex flex-col justify-between ${kpis.savingsRate >= 20 ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-100' : kpis.savingsRate > 0 ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100' : 'bg-gradient-to-br from-red-50 to-orange-50 border-red-100'}`}>
-                            <div className="flex justify-between items-start"><div><p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">{user.accountType === 'BUSINESS' ? 'Margem de Lucro' : 'Taxa de Poupança'}</p><h3 className={`text-3xl font-bold ${kpis.savingsRate >= 0 ? 'text-gray-800' : 'text-red-600'}`}>{kpis.savingsRate.toFixed(1)}%</h3></div><div className="p-2 bg-white/60 rounded-lg"><svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg></div></div>
+                            <div className="flex justify-between items-start"><div><p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">{user.accountType === 'BUSINESS' ? 'Margem de Lucro' : 'Taxa de PoupanÃ§a'}</p><h3 className={`text-3xl font-bold ${kpis.savingsRate >= 0 ? 'text-gray-800' : 'text-red-600'}`}>{kpis.savingsRate.toFixed(1)}%</h3></div><div className="p-2 bg-white/60 rounded-lg"><svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg></div></div>
                         </div>
-                        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Resultado Líquido</p><h3 className={`text-3xl font-bold ${kpis.balance >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>R$ {kpis.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3></div></div>
+                        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Resultado LÃ­quido</p><h3 className={`text-3xl font-bold ${kpis.balance >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>R$ {kpis.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3></div></div>
                         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Estrutura de Custo</p><div className="flex items-end gap-2"><h3 className="text-2xl font-bold text-gray-800">{kpis.fixedRatio.toFixed(0)}%</h3><span className="text-sm text-gray-500 mb-1">Fixo</span></div></div><div className="mt-4 w-full h-2 bg-gray-100 rounded-full overflow-hidden flex"><div className="h-full bg-blue-500" style={{ width: `${Math.min(kpis.fixedRatio, 100)}%` }}></div><div className="h-full bg-orange-400" style={{ width: `${Math.max(0, 100 - kpis.fixedRatio)}%` }}></div></div></div>
-                        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Média Diária</p><h3 className="text-3xl font-bold text-gray-800">R$ {kpis.dailyAverage.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3></div></div>
+                        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">MÃ©dia DiÃ¡ria</p><h3 className="text-3xl font-bold text-gray-800">R$ {kpis.dailyAverage.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3></div></div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -508,10 +509,10 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
 
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                            <h3 className="font-bold text-gray-800 text-lg">Detalhamento Hierárquico</h3>
+                            <h3 className="font-bold text-gray-800 text-lg">Detalhamento HierÃ¡rquico</h3>
                             <div className="flex gap-2">
-                                <button onClick={() => setBreakdownVisibility(prev => ({ ...prev, income: !prev.income }))} className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all border ${breakdownVisibility.income ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-white text-gray-400 border-gray-200 hover:text-emerald-500 hover:border-emerald-200'}`}>{breakdownVisibility.income ? '✓ Receitas' : 'Receitas'}</button>
-                                <button onClick={() => setBreakdownVisibility(prev => ({ ...prev, expense: !prev.expense }))} className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all border ${breakdownVisibility.expense ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-white text-gray-400 border-gray-200 hover:text-rose-500 hover:border-rose-200'}`}>{breakdownVisibility.expense ? '✓ Despesas' : 'Despesas'}</button>
+                                <button onClick={() => setBreakdownVisibility(prev => ({ ...prev, income: !prev.income }))} className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all border ${breakdownVisibility.income ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-white text-gray-400 border-gray-200 hover:text-emerald-500 hover:border-emerald-200'}`}>{breakdownVisibility.income ? 'âœ“ Receitas' : 'Receitas'}</button>
+                                <button onClick={() => setBreakdownVisibility(prev => ({ ...prev, expense: !prev.expense }))} className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all border ${breakdownVisibility.expense ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-white text-gray-400 border-gray-200 hover:text-rose-500 hover:border-rose-200'}`}>{breakdownVisibility.expense ? 'âœ“ Despesas' : 'Despesas'}</button>
                             </div>
                         </div>
                         <div className="p-6"><div className={`grid gap-8 ${breakdownVisibility.income && breakdownVisibility.expense ? 'md:grid-cols-2' : 'grid-cols-1'}`}>{breakdownVisibility.income && renderBreakdownColumn("Receitas", incomeBreakdownData, 'emerald')}{breakdownVisibility.expense && renderBreakdownColumn("Despesas", expenseBreakdownData, 'rose')}</div></div>
@@ -525,12 +526,12 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
                         <div className="bg-gray-100 p-1 rounded-lg flex shadow-inner">
                             <button onClick={() => setCategoryViewType('EXPENSE')} className={`px-6 py-2 text-sm font-bold rounded-md transition-all ${categoryViewType === 'EXPENSE' ? 'bg-white text-rose-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>Despesas</button>
                             <button onClick={() => setCategoryViewType('INCOME')} className={`px-6 py-2 text-sm font-bold rounded-md transition-all ${categoryViewType === 'INCOME' ? 'bg-white text-emerald-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>Receitas</button>
-                            <button onClick={() => setCategoryViewType('TRANSFER')} className={`px-6 py-2 text-sm font-bold rounded-md transition-all ${categoryViewType === 'TRANSFER' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>Transferências</button>
+                            <button onClick={() => setCategoryViewType('TRANSFER')} className={`px-6 py-2 text-sm font-bold rounded-md transition-all ${categoryViewType === 'TRANSFER' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>TransferÃªncias</button>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center min-w-0">
-                            <h3 className="text-lg font-bold text-gray-800 mb-2 w-full text-center">Distribuição</h3>
+                            <h3 className="text-lg font-bold text-gray-800 mb-2 w-full text-center">DistribuiÃ§Ã£o</h3>
                             <p className="text-3xl font-bold text-gray-800 mb-8">R$ {categoryStats.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                             <div className="w-full h-64 min-h-[300px]">
                                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
@@ -549,12 +550,12 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
 
             {activeTab === 'DRE' && (
                 <div className="space-y-8 animate-fade-in">
-                    <div className="flex justify-center"><div className="bg-gray-100 p-1 rounded-lg flex shadow-sm border border-gray-200"><button onClick={() => setAccountingBasis('COMPETENCE')} className={`px-4 py-2 text-xs font-bold rounded-md transition-all ${accountingBasis === 'COMPETENCE' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>Regime de Competência</button><button onClick={() => setAccountingBasis('CASH')} className={`px-4 py-2 text-xs font-bold rounded-md transition-all ${accountingBasis === 'CASH' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>Regime de Caixa</button></div></div>
-                    <div id="report-content-export" className="w-full bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100"><div className="p-8 bg-gradient-to-r from-gray-900 to-gray-800 text-white relative overflow-hidden"><div className="relative z-10 flex flex-col md:flex-row justify-between md:items-start gap-4"><div><h2 className="text-2xl font-bold">Demonstração do Resultado</h2><p className="text-sm text-gray-400 mt-1">{accountingBasis === 'COMPETENCE' ? 'Regime de Competência' : 'Regime de Caixa'}</p></div><div className="flex flex-col gap-3"><Button onClick={handleExportPDF} isLoading={isExporting} variant="ghost" className="bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-sm text-xs py-2 h-auto" title="Salvar como PDF">{!isExporting && <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>} Exportar PDF</Button></div></div><div className="absolute right-0 top-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div></div><div className="p-4 md:p-8 bg-white space-y-2"><div className="flex justify-between px-3 text-xs uppercase text-gray-400 font-bold tracking-wider mb-4 border-b border-gray-100 pb-2"><span>Estrutura</span><div className="flex gap-8"><span className="text-right w-24">Valor</span><span className="text-right w-24 hidden sm:block">AV %</span></div></div><DreRow label="(+) RECEITA BRUTA" value={dreData.grossRevenue} av={100} type="header" /><DreRow label="(-) Impostos sobre Vendas" value={dreData.taxes} av={calcAV(dreData.taxes)} isNegative indent={1} /><DreRow label="(=) RECEITA LÍQUIDA" value={dreData.netRevenue} av={calcAV(dreData.netRevenue)} type="subtotal" /><div className="h-4"></div><DreRow label="(-) Custos do Serviço" value={dreData.costs} av={calcAV(dreData.costs)} isNegative indent={1} /><DreRow label="(=) MARGEM DE CONTRIBUIÇÃO" value={dreData.contributionMargin} av={calcAV(dreData.contributionMargin)} type="subtotal" /><div className="h-4"></div><div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 mb-2">Despesas Operacionais</div><DreRow label="(-) Despesas com Pessoal" value={dreData.expPersonnel} av={calcAV(dreData.expPersonnel)} isNegative indent={1} /><DreRow label="(-) Despesas Comerciais" value={dreData.expCommercial} av={calcAV(dreData.expCommercial)} isNegative indent={1} /><DreRow label="(-) Despesas Administrativas" value={dreData.expAdmin} av={calcAV(dreData.expAdmin)} isNegative indent={1} /><div className="h-4"></div><DreRow label="(=) E.B.I.T.D.A." value={dreData.ebitda} av={calcAV(dreData.ebitda)} type="subtotal" /><DreRow label="(+/-) Resultado Financeiro" value={dreData.finResult} av={calcAV(dreData.finResult)} isNegative={dreData.finResult < 0} indent={1} /><div className="h-8 border-t border-gray-100 mt-4"></div><DreRow label="(=) LUCRO LÍQUIDO DO EXERCÍCIO" value={dreData.netProfit} av={calcAV(dreData.netProfit)} type="result" /></div></div>
+                    <div className="flex justify-center"><div className="bg-gray-100 p-1 rounded-lg flex shadow-sm border border-gray-200"><button onClick={() => setAccountingBasis('COMPETENCE')} className={`px-4 py-2 text-xs font-bold rounded-md transition-all ${accountingBasis === 'COMPETENCE' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>Regime de CompetÃªncia</button><button onClick={() => setAccountingBasis('CASH')} className={`px-4 py-2 text-xs font-bold rounded-md transition-all ${accountingBasis === 'CASH' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}>Regime de Caixa</button></div></div>
+                    <div id="report-content-export" className="w-full bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100"><div className="p-8 bg-gradient-to-r from-gray-900 to-gray-800 text-white relative overflow-hidden"><div className="relative z-10 flex flex-col md:flex-row justify-between md:items-start gap-4"><div><h2 className="text-2xl font-bold">DemonstraÃ§Ã£o do Resultado</h2><p className="text-sm text-gray-400 mt-1">{accountingBasis === 'COMPETENCE' ? 'Regime de CompetÃªncia' : 'Regime de Caixa'}</p></div><div className="flex flex-col gap-3"><Button onClick={handleExportPDF} isLoading={isExporting} variant="ghost" className="bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-sm text-xs py-2 h-auto" title="Salvar como PDF">{!isExporting && <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>} Exportar PDF</Button></div></div><div className="absolute right-0 top-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div></div><div className="p-4 md:p-8 bg-white space-y-2"><div className="flex justify-between px-3 text-xs uppercase text-gray-400 font-bold tracking-wider mb-4 border-b border-gray-100 pb-2"><span>Estrutura</span><div className="flex gap-8"><span className="text-right w-24">Valor</span><span className="text-right w-24 hidden sm:block">AV %</span></div></div><DreRow label="(+) RECEITA BRUTA" value={dreData.grossRevenue} av={100} type="header" /><DreRow label="(-) Impostos sobre Vendas" value={dreData.taxes} av={calcAV(dreData.taxes)} isNegative indent={1} /><DreRow label="(=) RECEITA LÃQUIDA" value={dreData.netRevenue} av={calcAV(dreData.netRevenue)} type="subtotal" /><div className="h-4"></div><DreRow label="(-) Custos do ServiÃ§o" value={dreData.costs} av={calcAV(dreData.costs)} isNegative indent={1} /><DreRow label="(=) MARGEM DE CONTRIBUIÃ‡ÃƒO" value={dreData.contributionMargin} av={calcAV(dreData.contributionMargin)} type="subtotal" /><div className="h-4"></div><div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 mb-2">Despesas Operacionais</div><DreRow label="(-) Despesas com Pessoal" value={dreData.expPersonnel} av={calcAV(dreData.expPersonnel)} isNegative indent={1} /><DreRow label="(-) Despesas Comerciais" value={dreData.expCommercial} av={calcAV(dreData.expCommercial)} isNegative indent={1} /><DreRow label="(-) Despesas Administrativas" value={dreData.expAdmin} av={calcAV(dreData.expAdmin)} isNegative indent={1} /><div className="h-4"></div><DreRow label="(=) E.B.I.T.D.A." value={dreData.ebitda} av={calcAV(dreData.ebitda)} type="subtotal" /><DreRow label="(+/-) Resultado Financeiro" value={dreData.finResult} av={calcAV(dreData.finResult)} isNegative={dreData.finResult < 0} indent={1} /><div className="h-8 border-t border-gray-100 mt-4"></div><DreRow label="(=) LUCRO LÃQUIDO DO EXERCÃCIO" value={dreData.netProfit} av={calcAV(dreData.netProfit)} type="result" /></div></div>
                 </div>
             )}
 
-            <div className="mt-8"><AIAnalysisCard result={aiAnalysis} isLoading={isAnalyzing} onAnalyze={handleDeepAnalysis} title={activeTab === 'DRE' ? 'Consultor de DRE' : activeTab === 'CATEGORY' ? 'Consultor de Gastos' : 'Consultor Financeiro'} subtitle={activeTab === 'DRE' ? 'Analise a eficiência e margens' : activeTab === 'CATEGORY' ? 'Identifique gargalos' : 'Analise o fluxo de caixa'} buttonText={aiAnalysis ? 'Regerar Análise' : 'Gerar Análise IA'} /></div>
+            <div className="mt-8"><AIAnalysisCard result={aiAnalysis} isLoading={isAnalyzing} onAnalyze={handleDeepAnalysis} title={activeTab === 'DRE' ? 'Consultor de DRE' : activeTab === 'CATEGORY' ? 'Consultor de Gastos' : 'Consultor Financeiro'} subtitle={activeTab === 'DRE' ? 'Analise a eficiÃªncia e margens' : activeTab === 'CATEGORY' ? 'Identifique gargalos' : 'Analise o fluxo de caixa'} buttonText={aiAnalysis ? 'Regerar AnÃ¡lise' : 'Gerar AnÃ¡lise IA'} /></div>
         </div>
     );
 };

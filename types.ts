@@ -166,30 +166,3 @@ export interface AIAnalysisResult {
   detailedReasoning: string; // Texto longo para "expandir"
 }
 
-// INVESTMENTS
-export type InvestmentType = 'STOCK' | 'REIT' | 'FIXED_INCOME' | 'CRYPTO' | 'OTHER';
-export type InvestmentTransactionType = 'BUY' | 'SELL' | 'DIVIDEND' | 'JCP';
-
-export interface InvestmentAsset {
-  id: string;
-  userId: string;
-  ticker?: string;
-  name: string;
-  type: InvestmentType;
-  currentPrice: number;
-  quantity: number;
-  averagePrice: number;
-  createdAt?: string;
-}
-
-export interface InvestmentTransaction {
-  id: string;
-  assetId: string;
-  userId: string;
-  type: InvestmentTransactionType;
-  quantity: number;
-  price: number;
-  totalAmount: number;
-  date: string;
-  fees: number;
-}

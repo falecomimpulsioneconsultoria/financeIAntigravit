@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useRef } from 'react';
 import { DashboardConfig, User, SubUser, UserPermissions, PaymentMethod, Transaction } from '../types';
 import { Button } from './ui/Button';
@@ -76,7 +76,7 @@ export const Settings: React.FC<SettingsProps> = ({
         const file = e.target.files?.[0];
         if (file) {
             if (file.size > 2 * 1024 * 1024) {
-                alert("A imagem deve ter no máximo 2MB.");
+                alert("A imagem deve ter no mÃ¡ximo 2MB.");
                 return;
             }
             const reader = new FileReader();
@@ -109,7 +109,7 @@ export const Settings: React.FC<SettingsProps> = ({
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newPass !== confirmPass) {
-            setErrorMsg('As novas senhas não coincidem.');
+            setErrorMsg('As novas senhas nÃ£o coincidem.');
             return;
         }
         if (newPass.length < 6) {
@@ -186,7 +186,7 @@ export const Settings: React.FC<SettingsProps> = ({
     };
 
     const handleRemoveSubUser = async (id: string) => {
-        if (window.confirm("Tem certeza que deseja remover este usuário?")) {
+        if (window.confirm("Tem certeza que deseja remover este usuÃ¡rio?")) {
             const updatedList = subUsers.filter(u => u.id !== id);
             setSubUsers(updatedList);
             await authService.updateUser(user.id, { subUsers: updatedList });
@@ -211,7 +211,7 @@ export const Settings: React.FC<SettingsProps> = ({
     const handleDeleteMethodClick = (id: string) => {
         if (!onDeletePaymentMethod) return;
         if (transactions.some(t => t.paymentMethodId === id)) {
-            alert("Existem lançamentos associados a esta forma de pagamento.");
+            alert("Existem lanÃ§amentos associados a esta forma de pagamento.");
             return;
         }
         if (window.confirm("Deseja excluir?")) onDeletePaymentMethod(id);
@@ -251,16 +251,16 @@ export const Settings: React.FC<SettingsProps> = ({
 
     return (
         <div className="w-full space-y-6 animate-fade-in pb-10">
-            <h1 className="text-2xl font-bold text-gray-900">Configurações</h1>
+            <h1 className="text-2xl font-bold text-gray-900">ConfiguraÃ§Ãµes</h1>
 
             <div className="flex flex-col lg:flex-row gap-8">
                 <div className="w-full lg:w-64 flex-shrink-0 space-y-2">
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
                         <TabButton id="PROFILE" label="Perfil" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>} />
-                        {canChangeSecurity && <TabButton id="SECURITY" label="Segurança" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>} />}
+                        {canChangeSecurity && <TabButton id="SECURITY" label="SeguranÃ§a" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>} />}
                         {canManageUsers && <TabButton id="USERS" label="Equipe" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>} />}
                         <TabButton id="PAYMENT_METHODS" label="Formas de Pagto" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>} />
-                        {canViewPreferences && <TabButton id="PREFERENCES" label="Preferências" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>} />}
+                        {canViewPreferences && <TabButton id="PREFERENCES" label="PreferÃªncias" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>} />}
                     </div>
                 </div>
 
@@ -278,14 +278,14 @@ export const Settings: React.FC<SettingsProps> = ({
                                     <button type="button" onClick={() => fileInputRef.current?.click()} className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow hover:bg-blue-700"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg></button>
                                     <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
                                 </div>
-                                <div><h4 className="text-lg font-bold">Identificação</h4><p className="text-sm text-gray-500">Logo ou foto pessoal.</p></div>
+                                <div><h4 className="text-lg font-bold">IdentificaÃ§Ã£o</h4><p className="text-sm text-gray-500">Logo ou foto pessoal.</p></div>
                             </div>
 
                             {/* STATUS DA CONTA */}
                             <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Status da Conta</p>
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <span className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase px-2.5 py-1 rounded-lg ${user.accountType === 'BUSINESS' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                                    <span className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase px-2.5 py-1 rounded-lg ${user.accountType === 'BUSINESS' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
                                         {user.accountType === 'BUSINESS' ? (
                                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                                         ) : (
@@ -337,9 +337,9 @@ export const Settings: React.FC<SettingsProps> = ({
                                                     ) : (
                                                         <>
                                                             {u.permissions?.viewDashboard && <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-medium rounded border border-blue-100">Dash</span>}
-                                                            {u.permissions?.manageTransactions && <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 text-[10px] font-medium rounded border border-indigo-100">Lançamentos</span>}
-                                                            {u.permissions?.manageAccounts && <span className="px-1.5 py-0.5 bg-purple-50 text-purple-600 text-[10px] font-medium rounded border border-purple-100">Contas</span>}
-                                                            {u.permissions?.viewReports && <span className="px-1.5 py-0.5 bg-orange-50 text-orange-600 text-[10px] font-medium rounded border border-orange-100">Relatórios</span>}
+                                                            {u.permissions?.manageTransactions && <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 text-[10px] font-medium rounded border border-indigo-100">LanÃ§amentos</span>}
+                                                            {u.permissions?.manageAccounts && <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] font-medium rounded border border-emerald-100">Contas</span>}
+                                                            {u.permissions?.viewReports && <span className="px-1.5 py-0.5 bg-orange-50 text-orange-600 text-[10px] font-medium rounded border border-orange-100">RelatÃ³rios</span>}
                                                             {u.permissions?.viewSettings && <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-medium rounded border border-gray-200">Config</span>}
                                                         </>
                                                     )}
@@ -354,14 +354,14 @@ export const Settings: React.FC<SettingsProps> = ({
                                 ))}
                             </div>
                             <div className="p-6 bg-gray-50 rounded-xl border space-y-4">
-                                <h5 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">{editingSubUserId ? 'Editar Usuário' : 'Novo Usuário'}</h5>
+                                <h5 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">{editingSubUserId ? 'Editar UsuÃ¡rio' : 'Novo UsuÃ¡rio'}</h5>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-xs font-bold text-gray-500 mb-1">Nome</label>
                                             <input
-                                                placeholder="Ex: João Silva"
+                                                placeholder="Ex: JoÃ£o Silva"
                                                 value={newSubUserName}
                                                 onChange={e => setNewSubUserName(e.target.value)}
                                                 className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -389,15 +389,15 @@ export const Settings: React.FC<SettingsProps> = ({
                                     </div>
 
                                     <div className="bg-white p-4 rounded-xl border border-gray-200">
-                                        <label className="block text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">Permissões de Acesso</label>
+                                        <label className="block text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">PermissÃµes de Acesso</label>
                                         <div className="space-y-3">
                                             {[
                                                 { key: 'viewDashboard', label: 'Visualizar Dashboard' },
-                                                { key: 'manageTransactions', label: 'Gerenciar Lançamentos' },
+                                                { key: 'manageTransactions', label: 'Gerenciar LanÃ§amentos' },
                                                 { key: 'manageAccounts', label: 'Gerenciar Contas' },
                                                 { key: 'manageCategories', label: 'Gerenciar Categorias' },
-                                                { key: 'viewReports', label: 'Visualizar Relatórios' },
-                                                { key: 'viewSettings', label: 'Acessar Configurações' }
+                                                { key: 'viewReports', label: 'Visualizar RelatÃ³rios' },
+                                                { key: 'viewSettings', label: 'Acessar ConfiguraÃ§Ãµes' }
                                             ].map((perm) => (
                                                 <label key={perm.key} className="flex items-center gap-3 cursor-pointer group">
                                                     <div className="relative flex items-center">
@@ -419,10 +419,10 @@ export const Settings: React.FC<SettingsProps> = ({
 
                                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                                     {editingSubUserId && (
-                                        <Button variant="ghost" onClick={handleCancelEdit}>Cancelar Edição</Button>
+                                        <Button variant="ghost" onClick={handleCancelEdit}>Cancelar EdiÃ§Ã£o</Button>
                                     )}
                                     <Button onClick={handleSaveSubUser}>
-                                        {editingSubUserId ? 'Salvar Alterações' : 'Adicionar Usuário'}
+                                        {editingSubUserId ? 'Salvar AlteraÃ§Ãµes' : 'Adicionar UsuÃ¡rio'}
                                     </Button>
                                 </div>
                             </div>
@@ -447,8 +447,8 @@ export const Settings: React.FC<SettingsProps> = ({
                                         className="bg-white border text-sm font-bold rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="BRL">Real (R$)</option>
-                                        <option value="USD">Dólar ($)</option>
-                                        <option value="EUR">Euro (€)</option>
+                                        <option value="USD">DÃ³lar ($)</option>
+                                        <option value="EUR">Euro (â‚¬)</option>
                                     </select>
                                 </div>
 
@@ -478,13 +478,13 @@ export const Settings: React.FC<SettingsProps> = ({
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
                     <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl animate-scale-in">
                         <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">Zerar Sistema</h3>
-                        <p className="text-sm text-gray-500 mb-6 text-center">Apaga lançamentos e contas. Ação irreversível.</p>
+                        <p className="text-sm text-gray-500 mb-6 text-center">Apaga lanÃ§amentos e contas. AÃ§Ã£o irreversÃ­vel.</p>
                         <form onSubmit={handleConfirmReset} className="space-y-4">
                             <input type="password" required value={resetPasswordInput} onChange={e => setResetPasswordInput(e.target.value)} placeholder="Sua senha master" className="w-full p-4 bg-gray-50 border rounded-2xl text-center focus:ring-4 focus:ring-red-500/10" />
                             {resetError && <p className="text-xs text-red-600 text-center">{resetError}</p>}
                             <div className="flex items-center gap-3 p-3 bg-red-50 rounded-xl">
                                 <input type="checkbox" id="delCat" checked={deleteCategories} onChange={e => setDeleteCategories(e.target.checked)} className="w-5 h-5 text-red-600" />
-                                <label htmlFor="delCat" className="text-xs text-red-800 font-bold">Apagar Categorias também?</label>
+                                <label htmlFor="delCat" className="text-xs text-red-800 font-bold">Apagar Categorias tambÃ©m?</label>
                             </div>
                             <div className="flex gap-3 pt-4"><Button type="button" variant="ghost" onClick={() => setIsResetModalOpen(false)} className="flex-1">Cancelar</Button><Button type="submit" variant="danger" className="flex-1">Zerar Agora</Button></div>
                         </form>

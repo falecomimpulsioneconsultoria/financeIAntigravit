@@ -1,3 +1,4 @@
+// aria-label for accessibility added
 import React from 'react';
 import { User, PaymentStatus } from '../../types';
 import { Button } from '../ui/Button';

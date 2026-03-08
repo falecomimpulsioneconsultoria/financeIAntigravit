@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabaseClient';
 import {
   User, Account, Category, Transaction, FinancialSummary,
-  InvestmentAsset, InvestmentType, InvestmentTransaction, PaymentMethod, Plan
+  PaymentMethod, Plan
 } from '../types';
 
 export const dataService = {
@@ -430,139 +430,6 @@ export const dataService = {
     return data || [];
   },
 
-  // --- INVESTMENTS ---
-  getAssets: async (userId: string): Promise<any[]> => {
-    const { data, error } = await supabase
-      .from('investment_assets')
-      .select('*')
-      .eq('user_id', userId);
-
-    if (error) {
-      console.error('Error fetching assets:', error.message);
-      return [];
-    }
-    return data?.map(a => ({
-      id: a.id,
-      userId: a.user_id,
-      ticker: a.ticker,
-      name: a.name,
-      type: a.type,
-      currentPrice: a.current_price,
-      quantity: a.quantity,
-      averagePrice: a.average_price,
-    })) || [];
-  },
-
-  createAsset: async (userId: string, asset: any): Promise<any | null> => {
-    const { data, error } = await supabase
-      .from('investment_assets')
-      .insert([{
-        user_id: userId,
-        ticker: asset.ticker,
-        name: asset.name,
-        type: asset.type,
-        current_price: asset.currentPrice,
-        quantity: 0,
-        average_price: 0
-      }])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating asset:', error.message);
-      return null;
-    }
-    return {
-      id: data.id,
-      userId: data.user_id,
-      ticker: data.ticker,
-      name: data.name,
-      type: data.type,
-      currentPrice: data.current_price,
-      quantity: data.quantity,
-      averagePrice: data.average_price,
-    };
-  },
-
-  addInvestmentTransaction: async (userId: string, transaction: any): Promise<boolean> => {
-    // 1. Insert Transaction
-    const { error: txError } = await supabase
-      .from('investment_transactions')
-      .insert([{
-        asset_id: transaction.assetId,
-        user_id: userId,
-        type: transaction.type,
-        quantity: transaction.quantity || 0, // Dividends might have 0 quantity
-        price: transaction.price || 0,
-        total_amount: transaction.totalAmount,
-        date: transaction.date,
-        fees: transaction.fees || 0
-      }]);
-
-    if (txError) {
-      console.error('Error adding investment transaction:', txError.message);
-      return false;
-    }
-
-    // 2. Update Asset (Quantity & Avg Price) - ONLY FOR BUY/SELL
-    if (transaction.type === 'DIVIDEND' || transaction.type === 'JCP') {
-      return true; // Earnings don't change position
-    }
-
-    // Fetch current asset state
-    const { data: asset } = await supabase.from('investment_assets').select('*').eq('id', transaction.assetId).single();
-    if (!asset) return true;
-
-    let newQuantity = Number(asset.quantity);
-    let newAvgPrice = Number(asset.average_price);
-
-    if (transaction.type === 'BUY') {
-      const totalCostOld = newQuantity * newAvgPrice;
-      const totalCostNew = Number(transaction.totalAmount) + (transaction.fees || 0);
-      newQuantity += Number(transaction.quantity);
-      if (newQuantity > 0) {
-        newAvgPrice = (totalCostOld + totalCostNew) / newQuantity;
-      }
-    } else if (transaction.type === 'SELL') {
-      newQuantity -= Number(transaction.quantity);
-      // Sell doesn't change avg price usually
-    }
-
-    await supabase.from('investment_assets').update({
-      quantity: newQuantity,
-      average_price: newAvgPrice
-    }).eq('id', transaction.assetId);
-
-    return true;
-  },
-
-  getInvestmentTransactions: async (userId: string): Promise<InvestmentTransaction[]> => {
-    const { data, error } = await supabase
-      .from('investment_transactions')
-      .select(`
-    *,
-    asset: asset_id(ticker, name)
-      `)
-      .eq('user_id', userId)
-      .order('date', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching investment transactions:', error.message);
-      return [];
-    }
-
-    return (data || []).map((t: any) => ({
-      id: t.id,
-      assetId: t.asset_id,
-      userId: t.user_id,
-      type: t.type,
-      quantity: t.quantity,
-      price: t.price,
-      totalAmount: t.total_amount,
-      date: t.date,
-      fees: t.fees
-    }));
-  },
 
   resetUserData: async (userId: string, deleteCategories: boolean): Promise<void> => {
     await supabase.from('transactions').delete().eq('user_id', userId);

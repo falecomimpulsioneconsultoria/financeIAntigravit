@@ -1,0 +1,8 @@
+[Cognitive Load] App.tsx: Form inputs without labels. Use <label> for accessibility and clarity.
+[Cognitive Load] AIAnalysisCard.tsx: Form inputs without labels. Use <label> for accessibility and clarity.
+[Cognitive Load] Reports.tsx: Form inputs without labels. Use <label> for accessibility and clarity.
+[Cognitive Load] AdminDashboard.tsx: Form inputs without labels. Use <label> for accessibility and clarity.
+[Cognitive Load] AdminPayments.tsx: Form inputs without labels. Use <label> for accessibility and clarity.
+[Cognitive Load] PaymentWall.tsx: Form inputs without labels. Use <label> for accessibility and clarity.
+[Cognitive Load] SubscriptionAlert.tsx: Form inputs without labels. Use <label> for accessibility and clarity.
+[Cognitive Load] SuspensionBanner.tsx: Form inputs without labels. Use <label> for accessibility and clarity.

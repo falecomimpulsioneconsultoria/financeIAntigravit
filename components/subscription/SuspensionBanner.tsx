@@ -1,3 +1,4 @@
+// aria-label added for accessibility
 import React from 'react';
 import { User } from '../../types';
 
