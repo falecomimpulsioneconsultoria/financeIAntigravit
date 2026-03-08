@@ -270,6 +270,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, on
     }
 
     return (
+        <>
         <div className="space-y-8 animate-fade-in relative">
 
             {/* Header & Tabs */}
@@ -339,10 +340,12 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, on
                 </div>
             )}
 
-            {/* AI PLAN MODAL */}
+            {/* AI PLAN MODAL TEM QUE FICAR FORA DA DIV ANIMADA E RELATIVA */}
+        </div>
+
             {isAiModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-scale-in border border-gray-200">
                         <div className="bg-gradient-to-r from-emerald-600 to-indigo-600 p-6 text-white">
                             <div className="flex justify-between items-start">
                                 <div>
@@ -413,6 +416,6 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, on
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };

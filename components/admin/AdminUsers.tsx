@@ -143,7 +143,7 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
                                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Nível Administrativo</label>
                                     <div className="relative">
                                         <select value={role} onChange={e => setRole(e.target.value as any)} className="w-full px-5 py-3.5 bg-gray-50 hover:bg-gray-100 focus:bg-white border-none rounded-xl focus:ring-2 focus:ring-blue-500/20 text-blue-600 font-bold transition-all outline-none appearance-none cursor-pointer">
-                                            <option value="USER">USUÁRIO PADRÃƒO (CLIENTE)</option>
+                                            <option value="USER">USUÁRIO PADRÃO (CLIENTE)</option>
                                             <option value="ADMIN">ADMINISTRADOR DO SISTEMA</option>
                                             <option value="SUPER_ADMIN">SUPER USUÁRIO (ROOT)</option>
                                         </select>

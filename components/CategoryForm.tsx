@@ -153,7 +153,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ categories, initialD
                 onChange={(e) => setParentId(e.target.value)}
                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-gray-600"
             >
-                <option value="">Nenhuma (Ã‰ uma categoria principal)</option>
+                <option value="">Nenhuma (É uma categoria principal)</option>
                 {parentOptions.map(opt => (
                     <option key={opt.id} value={opt.id}>
                         {/* Visual Indentation using unicode space */}
