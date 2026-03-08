@@ -134,19 +134,7 @@ export default function App() {
       try {
         const user = await authService.getSessionUser();
         if (user) {
-          // Auto re-new for 2026-12-31 if expired
-          if (new Date(user.expirationDate) < new Date('2026-12-31')) {
-            try {
-              await authService.updateUser(user.id, {
-                expirationDate: '2026-12-31T23:59:59Z',
-                paymentStatus: 'PAID',
-                isActive: true
-              });
-              user.expirationDate = '2026-12-31T23:59:59Z';
-              user.paymentStatus = 'PAID';
-              user.isActive = true;
-            } catch (e) { console.error('Auto-renew failed', e); }
-          }
+
           setCurrentUser(user);
           await fetchData(user.id);
           if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
