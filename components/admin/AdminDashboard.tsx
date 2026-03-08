@@ -40,12 +40,12 @@ export const AdminDashboard: React.FC = () => {
             const newUsersCount = clientUsers.filter(u => new Date(u.createdAt) >= firstDayOfMonth).length;
             const totalManagedBalance = allAccounts.reduce((acc, accnt) => acc + (accnt.balance || 0), 0);
 
-            // CÃ¡lculos de RetenÃ§Ã£o e PrevisÃ£o
+            // Cálculos de Retenção e Previsão
             const churnRate = clientUsers.length > 0 ? (overdueUsersCount / clientUsers.length) * 100 : 0;
             const avgTicket = clientUsers.length > 0 ? mrr / clientUsers.length : 0;
             const ltv = churnRate > 0 ? avgTicket / (churnRate / 100) : avgTicket * 12; // Estimativa simples
 
-            // ProjeÃ§Ã£o baseada em vencimentos (agrupando por meses futuros)
+            // Projeção baseada em vencimentos (agrupando por meses futuros)
             const forecast30d = clientUsers.filter(u => {
                 const exp = new Date(u.expirationDate);
                 const next30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -71,7 +71,7 @@ export const AdminDashboard: React.FC = () => {
                 ltv,
                 forecast30d,
                 forecast60d,
-                forecast90d: forecast60d * 1.5 // SimplificaÃ§Ã£o para o exemplo
+                forecast90d: forecast60d * 1.5 // Simplificação para o exemplo
             });
 
             setRecentUsers(users.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5));
@@ -102,7 +102,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900 leading-tight">Painel Executivo</h2>
-                    <p className="text-gray-500 font-medium">AnÃ¡lise de RetenÃ§Ã£o, Crescimento e ProjeÃ§Ã£o de Faturamento.</p>
+                    <p className="text-gray-500 font-medium">Análise de Retenção, Crescimento e Projeção de Faturamento.</p>
                 </div>
                 <Button onClick={loadAdminData} variant="outline" size="sm" className="gap-2">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
@@ -155,12 +155,12 @@ export const AdminDashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
-                    {/* PrevisÃ£o de Receita (Forecast) */}
+                    {/* Previsão de Receita (Forecast) */}
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                             <div>
-                                <h3 className="font-bold text-gray-900 text-lg">ProjeÃ§Ã£o Financeira</h3>
-                                <p className="text-xs text-gray-500">Expectativa de renovaÃ§Ãµes baseada nos vencimentos atuais.</p>
+                                <h3 className="font-bold text-gray-900 text-lg">Projeção Financeira</h3>
+                                <p className="text-xs text-gray-500">Expectativa de renovações baseada nos vencimentos atuais.</p>
                             </div>
                             <div className="p-2 bg-blue-50 rounded-lg">
                                 <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002-2z" /></svg>
@@ -168,21 +168,21 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                         <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="space-y-2">
-                                <p className="text-sm font-semibold text-gray-500">PrÃ³ximos 30 dias</p>
+                                <p className="text-sm font-semibold text-gray-500">Próximos 30 dias</p>
                                 <p className="text-2xl font-extrabold text-blue-600">R$ {stats.forecast30d.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                 <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
                                     <div className="bg-blue-600 h-full w-[100%]"></div>
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <p className="text-sm font-semibold text-gray-500">PrÃ³ximos 60 dias</p>
+                                <p className="text-sm font-semibold text-gray-500">Próximos 60 dias</p>
                                 <p className="text-2xl font-extrabold text-indigo-600">R$ {stats.forecast60d.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                 <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
                                     <div className="bg-indigo-600 h-full w-[70%]" style={{ width: `${(stats.forecast60d / stats.mrr) * 50}%` }}></div>
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <p className="text-sm font-semibold text-gray-500">PrÃ³ximos 90 dias</p>
+                                <p className="text-sm font-semibold text-gray-500">Próximos 90 dias</p>
                                 <p className="text-2xl font-extrabold text-emerald-600">R$ {stats.forecast90d.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                 <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
                                     <div className="bg-emerald-600 h-full w-[45%]" style={{ width: `${(stats.forecast90d / stats.mrr) * 30}%` }}></div>
@@ -190,11 +190,11 @@ export const AdminDashboard: React.FC = () => {
                             </div>
                         </div>
                         <div className="bg-blue-50/30 p-4 border-t border-gray-100">
-                             <p className="text-[10px] text-blue-700 font-medium italic text-center">Valores baseados em 100% de taxa de renovaÃ§Ã£o dos planos ativos.</p>
+                             <p className="text-[10px] text-blue-700 font-medium italic text-center">Valores baseados em 100% de taxa de renovação dos planos ativos.</p>
                         </div>
                     </div>
 
-                    {/* Novos UsuÃ¡rios (Mantido para contexto de crescimento) */}
+                    {/* Novos Usuários (Mantido para contexto de crescimento) */}
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                             <h3 className="font-bold text-gray-900">Novos Leads / Clientes</h3>
@@ -227,11 +227,11 @@ export const AdminDashboard: React.FC = () => {
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                         <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                              <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-                             Infraestrutura & SaÃºde
+                             Infraestrutura & Saúde
                         </h3>
                         <div className="space-y-4">
                             <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-500 font-medium">Montante sob CustÃ³dia</span>
+                                <span className="text-sm text-gray-500 font-medium">Montante sob Custódia</span>
                                 <span className="text-gray-900 text-xs font-bold whitespace-nowrap">R$ {stats.totalManagedBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between items-center">
@@ -253,11 +253,11 @@ export const AdminDashboard: React.FC = () => {
                             <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M11 2v20c-5.07-0-9.25-3.08-10.45-7.3l2.87-.63C4.14 16.92 7.22 19 11 19V5c3.78 0 6.86 2.08 7.58 4.93l2.87-.63C20.25 5.08 16.07 2 11 2z" /></svg>
                         </div>
                         <h3 className="font-bold text-lg mb-1 relative z-10">Meta de Crescimento</h3>
-                        <p className="text-blue-100 text-xs mb-4 relative z-10">Faltam {(stats.totalUsers % 100) - 100} usuÃ¡rios para o prÃ³ximo marco de 100.</p>
+                        <p className="text-blue-100 text-xs mb-4 relative z-10">Faltam {(stats.totalUsers % 100) - 100} usuários para o próximo marco de 100.</p>
                         <div className="w-full bg-white/20 h-2 rounded-full mb-4">
                             <div className="bg-white h-full rounded-full" style={{ width: `${stats.totalUsers % 100}%` }}></div>
                         </div>
-                        <Button variant="outline" className="w-full bg-white/10 border-white/20 text-white hover:bg-white hover:text-blue-600 border relative z-10">Exportar RelatÃ³rio</Button>
+                        <Button variant="outline" className="w-full bg-white/10 border-white/20 text-white hover:bg-white hover:text-blue-600 border relative z-10">Exportar Relatório</Button>
                     </div>
                 </div>
             </div>

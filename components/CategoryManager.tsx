@@ -14,18 +14,18 @@ interface CategoryManagerProps {
     onDelete: (id: string) => void;
 }
 
-// Interface estendida para uso interno na renderizaÃ§Ã£o recursiva
+// Interface estendida para uso interno na renderização recursiva
 interface TreeNode extends Category {
     code: string;
     children: TreeNode[];
     depth: number;
 }
 
-// Mapa de Hierarquia LegÃ­vel do DRE
+// Mapa de Hierarquia Legível do DRE
 const dreHierarchyMap: Record<string, string> = {
     'DRE_GROSS_REVENUE': 'Receita > Operacional Bruta',
-    'DRE_TAXES': 'DeduÃ§Ãµes > Impostos',
-    'DRE_COSTS': 'Custos > Diretos/ServiÃ§o',
+    'DRE_TAXES': 'Deduções > Impostos',
+    'DRE_COSTS': 'Custos > Diretos/Serviço',
     'DRE_EXPENSE_PERSONNEL': 'Desp. Operacional > Pessoal',
     'DRE_EXPENSE_COMMERCIAL': 'Desp. Operacional > Comercial',
     'DRE_EXPENSE_ADMIN': 'Desp. Operacional > Administrativa',
@@ -35,7 +35,7 @@ const dreHierarchyMap: Record<string, string> = {
 
 // Componente para exibir a hierarquia de forma elegante
 const DreHierarchyLabel = ({ code }: { code?: DreCategory }) => {
-    if (!code || !dreHierarchyMap[code]) return <span className="text-xs text-gray-300 italic">NÃ£o classificado</span>;
+    if (!code || !dreHierarchyMap[code]) return <span className="text-xs text-gray-300 italic">Não classificado</span>;
     const parts = dreHierarchyMap[code].split(' > ');
     return (
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5 text-xs text-gray-600">
@@ -107,7 +107,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, on
 
     const handleDeleteClick = (id: string) => {
         if (!canManage) return;
-        if (window.confirm('Tem certeza? Se esta categoria tiver subcategorias ou lanÃ§amentos, isso pode gerar inconsistÃªncias.')) {
+        if (window.confirm('Tem certeza? Se esta categoria tiver subcategorias ou lançamentos, isso pode gerar inconsistências.')) {
             onDelete(id);
         }
     };
@@ -134,10 +134,10 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, on
             const generatedData = await generateChartOfAccounts(currentUser.accountType, aiActivity, aiDetailLevel);
             if (generatedData && generatedData.length > 0) {
                 await dataService.createCategoriesBatch(currentUser.id, generatedData);
-                alert("Plano de contas gerado com sucesso! A pÃ¡gina serÃ¡ atualizada.");
+                alert("Plano de contas gerado com sucesso! A página será atualizada.");
                 window.location.reload();
             } else {
-                alert("A IA nÃ£o retornou categorias vÃ¡lidas. Tente detalhar mais.");
+                alert("A IA não retornou categorias válidas. Tente detalhar mais.");
             }
         } catch (error) {
             alert("Erro ao gerar plano de contas.");
@@ -328,7 +328,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, on
                     <div className="hidden md:flex px-4 py-3 bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
                         <div className="flex-1">Categoria</div>
                         <div className="w-1/3 pl-4 border-l border-gray-200/50">Grupo do DRE</div>
-                        <div className="w-20 text-right">AÃ§Ãµes</div>
+                        <div className="w-20 text-right">Ações</div>
                     </div>
 
                     <div className="divide-y divide-gray-50">
@@ -347,7 +347,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, on
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h3 className="text-xl font-bold">Gerador de Plano de Contas</h3>
-                                    <p className="text-emerald-100 text-sm mt-1">A IA criarÃ¡ categorias ideais para seu perfil.</p>
+                                    <p className="text-emerald-100 text-sm mt-1">A IA criará categorias ideais para seu perfil.</p>
                                 </div>
                                 <div className="bg-white/20 p-2 rounded-lg">
                                     <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -365,18 +365,18 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, on
                                 <div>
                                     <p className="text-xs font-bold text-gray-500 uppercase">Perfil Detectado</p>
                                     <p className="text-sm font-bold text-gray-800">
-                                        {currentUser?.accountType === 'BUSINESS' ? 'Empresarial (CNPJ)' : 'Pessoa FÃ­sica (CPF)'}
+                                        {currentUser?.accountType === 'BUSINESS' ? 'Empresarial (CNPJ)' : 'Pessoa Física (CPF)'}
                                     </p>
                                 </div>
                             </div>
 
                             {/* Question 1: Activity */}
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">1. Qual sua profissÃ£o ou atividade principal?</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">1. Qual sua profissão ou atividade principal?</label>
                                 <textarea
                                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
                                     rows={2}
-                                    placeholder={currentUser?.accountType === 'BUSINESS' ? "Ex: AgÃªncia de Marketing Digital, Padaria, ConsultÃ³rio MÃ©dico..." : "Ex: Estudante universitÃ¡rio, Engenheiro Civil, Aposentado..."}
+                                    placeholder={currentUser?.accountType === 'BUSINESS' ? "Ex: Agência de Marketing Digital, Padaria, Consultório Médico..." : "Ex: Estudante universitário, Engenheiro Civil, Aposentado..."}
                                     value={aiActivity}
                                     onChange={(e) => setAiActivity(e.target.value)}
                                 />
@@ -384,21 +384,21 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, on
 
                             {/* Question 2: Detail Level */}
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">2. NÃ­vel de detalhe desejado?</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">2. Nível de detalhe desejado?</label>
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         onClick={() => setAiDetailLevel('SIMPLE')}
                                         className={`p-3 rounded-xl border text-left transition-all ${aiDetailLevel === 'SIMPLE' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
                                     >
                                         <span className="font-bold block mb-1">Simples</span>
-                                        <span className="text-xs opacity-80">Categorias essenciais para controle rÃ¡pido.</span>
+                                        <span className="text-xs opacity-80">Categorias essenciais para controle rápido.</span>
                                     </button>
                                     <button
                                         onClick={() => setAiDetailLevel('DETAILED')}
                                         className={`p-3 rounded-xl border text-left transition-all ${aiDetailLevel === 'DETAILED' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
                                     >
                                         <span className="font-bold block mb-1">Detalhado</span>
-                                        <span className="text-xs opacity-80">Estrutura completa para anÃ¡lise profunda.</span>
+                                        <span className="text-xs opacity-80">Estrutura completa para análise profunda.</span>
                                     </button>
                                 </div>
                             </div>

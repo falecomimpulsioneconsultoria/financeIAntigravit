@@ -126,7 +126,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ categories, initialD
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all placeholder-gray-400"
-            placeholder="Ex: AlimentaÃ§Ã£o, Mercado, SalÃ¡rio"
+            placeholder="Ex: Alimentação, Mercado, Salário"
             />
         </div>
 
@@ -143,7 +143,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ categories, initialD
                     placeholder="0,00"
                 />
             </div>
-            <p className="text-xs text-gray-400 mt-1 ml-1">Deixe em branco ou 0 para nÃ£o definir meta.</p>
+            <p className="text-xs text-gray-400 mt-1 ml-1">Deixe em branco ou 0 para não definir meta.</p>
         </div>
 
         <div>
@@ -166,7 +166,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ categories, initialD
 
         {/* DRE Selection */}
         <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-           <label className="block text-sm font-bold text-blue-900 mb-1">Mapeamento para DRE (RelatÃ³rio)</label>
+           <label className="block text-sm font-bold text-blue-900 mb-1">Mapeamento para DRE (Relatório)</label>
            <p className="text-xs text-blue-700 mb-2">Onde esta categoria deve aparecer no Demonstrativo de Resultados?</p>
            
            <select 
@@ -174,12 +174,12 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ categories, initialD
               onChange={(e) => setDreCategory(e.target.value as DreCategory)}
               className="w-full px-4 py-2.5 bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 text-sm"
            >
-              <option value="">-- NÃ£o mapeado no DRE --</option>
+              <option value="">-- Não mapeado no DRE --</option>
               
               {type === 'INCOME' && (
                 <>
                   <optgroup label="Operacional">
-                    <option value="DRE_GROSS_REVENUE">(+) Receita Bruta (ComissÃµes)</option>
+                    <option value="DRE_GROSS_REVENUE">(+) Receita Bruta (Comissões)</option>
                   </optgroup>
                   <optgroup label="Financeiro">
                     <option value="DRE_FINANCIAL_INCOME">(+) Receita Financeira (Rendimentos)</option>
@@ -189,14 +189,14 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ categories, initialD
 
               {type === 'EXPENSE' && (
                 <>
-                  <optgroup label="DeduÃ§Ãµes e Custos">
+                  <optgroup label="Deduções e Custos">
                     <option value="DRE_TAXES">(-) Impostos sobre Vendas (Simples/ISS)</option>
-                    <option value="DRE_COSTS">(-) Custo do ServiÃ§o (ComissÃµes Pagas/Repassadas)</option>
+                    <option value="DRE_COSTS">(-) Custo do Serviço (Comissões Pagas/Repassadas)</option>
                   </optgroup>
                   <optgroup label="Despesas Operacionais">
-                    <option value="DRE_EXPENSE_PERSONNEL">(-) Despesas com Pessoal (PrÃ³-labore/SalÃ¡rios)</option>
-                    <option value="DRE_EXPENSE_COMMERCIAL">(-) Despesas Comerciais (Viagem/CombustÃ­vel)</option>
-                    <option value="DRE_EXPENSE_ADMIN">(-) Despesas Administrativas (EscritÃ³rio/Contador)</option>
+                    <option value="DRE_EXPENSE_PERSONNEL">(-) Despesas com Pessoal (Pró-labore/Salários)</option>
+                    <option value="DRE_EXPENSE_COMMERCIAL">(-) Despesas Comerciais (Viagem/Combustível)</option>
+                    <option value="DRE_EXPENSE_ADMIN">(-) Despesas Administrativas (Escritório/Contador)</option>
                   </optgroup>
                   <optgroup label="Financeiro">
                      <option value="DRE_FINANCIAL_EXPENSE">(-) Despesa Financeira (Juros/Tarifas)</option>
@@ -233,7 +233,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ categories, initialD
       <div className="flex gap-3 pt-6">
         <Button type="button" variant="ghost" onClick={onCancel} className="flex-1 text-gray-500 hover:bg-gray-100">Cancelar</Button>
         <Button type="submit" className="flex-1 shadow-lg shadow-blue-500/20">
-            {initialData ? 'Salvar AlteraÃ§Ãµes' : 'Criar Categoria'}
+            {initialData ? 'Salvar Alterações' : 'Criar Categoria'}
         </Button>
       </div>
     </form>

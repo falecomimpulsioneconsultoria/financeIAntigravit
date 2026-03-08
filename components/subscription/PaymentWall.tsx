@@ -4,7 +4,7 @@ import { User } from '../../types';
 
 interface PaymentWallProps {
     user: User;
-    onSimulatePayment: () => void; // Para fins de demonstraÃ§Ã£o
+    onSimulatePayment: () => void; // Para fins de demonstração
 }
 
 export const PaymentWall: React.FC<PaymentWallProps> = ({ user, onSimulatePayment }) => {
@@ -24,8 +24,8 @@ export const PaymentWall: React.FC<PaymentWallProps> = ({ user, onSimulatePaymen
 
                     <h2 className="text-2xl font-black text-gray-900 mb-2">Acesso Suspenso</h2>
                     <p className="text-gray-500 mb-8">
-                        Identificamos uma pendÃªncia financeira em sua conta superior a 3 dias. 
-                        Para continuar utilizando o sistema, Ã© necessÃ¡rio regularizar sua assinatura.
+                        Identificamos uma pendência financeira em sua conta superior a 3 dias. 
+                        Para continuar utilizando o sistema, é necessário regularizar sua assinatura.
                     </p>
 
                     <div className="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-100 mb-8">
@@ -49,7 +49,7 @@ export const PaymentWall: React.FC<PaymentWallProps> = ({ user, onSimulatePaymen
                     <p className="mt-6 text-xs text-gray-400">
                         Pagamento via PIX libera o acesso imediatamente.
                         <br />
-                        DÃºvidas? Entre em contato com o suporte.
+                        Dúvidas? Entre em contato com o suporte.
                     </p>
                 </div>
             </div>

@@ -15,9 +15,9 @@ interface AIAnalysisCardProps {
 
 const AIStatusBadge = ({ status }: { status: AIAnalysisResult['status'] }) => {
     const config = {
-        HEALTHY: { bg: 'bg-emerald-100', text: 'text-emerald-800', icon: 'shield-check', label: 'SaudÃ¡vel' },
-        WARNING: { bg: 'bg-amber-100', text: 'text-amber-800', icon: 'exclamation', label: 'AtenÃ§Ã£o' },
-        CRITICAL: { bg: 'bg-rose-100', text: 'text-rose-800', icon: 'lightning-bolt', label: 'CrÃ­tico' }
+        HEALTHY: { bg: 'bg-emerald-100', text: 'text-emerald-800', icon: 'shield-check', label: 'Saudável' },
+        WARNING: { bg: 'bg-amber-100', text: 'text-amber-800', icon: 'exclamation', label: 'Atenção' },
+        CRITICAL: { bg: 'bg-rose-100', text: 'text-rose-800', icon: 'lightning-bolt', label: 'Crítico' }
     };
     const c = config[status];
 
@@ -36,8 +36,8 @@ export const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
     isLoading, 
     onAnalyze, 
     title = "Consultor IA", 
-    subtitle = "AnÃ¡lise de inteligÃªncia artificial",
-    buttonText = "Gerar AnÃ¡lise"
+    subtitle = "Análise de inteligência artificial",
+    buttonText = "Gerar Análise"
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -95,13 +95,13 @@ export const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
                         {/* Summary & Recommendation */}
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <h4 className="text-xs font-bold uppercase text-gray-400 tracking-wider">Resumo do CenÃ¡rio</h4>
+                                <h4 className="text-xs font-bold uppercase text-gray-400 tracking-wider">Resumo do Cenário</h4>
                                 <p className="text-gray-800 font-medium leading-relaxed text-sm md:text-base">"{result.summary}"</p>
                             </div>
                             <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 shadow-sm">
                                 <h4 className="text-xs font-bold uppercase text-blue-800 tracking-wider mb-2 flex items-center gap-2">
                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                    RecomendaÃ§Ã£o Principal
+                                    Recomendação Principal
                                 </h4>
                                 <p className="text-blue-900 text-sm font-semibold">{result.recommendation}</p>
                             </div>
@@ -126,7 +126,7 @@ export const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
                                 onClick={() => setIsExpanded(!isExpanded)}
                                 className="flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors group w-full justify-center md:justify-start py-2"
                             >
-                                {isExpanded ? 'Ocultar RaciocÃ­nio' : 'Estender RaciocÃ­nio e Detalhes'}
+                                {isExpanded ? 'Ocultar Raciocínio' : 'Estender Raciocínio e Detalhes'}
                                 <svg className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : 'group-hover:translate-y-0.5'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
@@ -136,7 +136,7 @@ export const AIAnalysisCard: React.FC<AIAnalysisCardProps> = ({
                                 <div className="mt-2 p-5 bg-gray-50 rounded-xl text-sm text-gray-700 leading-relaxed whitespace-pre-line border border-gray-200 animate-fade-in shadow-inner">
                                     <div className="flex items-center gap-2 mb-3 text-gray-900 font-bold border-b border-gray-200 pb-2">
                                         <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                        AnÃ¡lise Detalhada
+                                        Análise Detalhada
                                     </div>
                                     {result.detailedReasoning}
                                 </div>

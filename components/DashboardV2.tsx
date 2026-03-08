@@ -219,10 +219,7 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ summary, transactions,
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 Alterar data da Dashboard
             </span>
-            <div className="flex border border-cyan-400 rounded overflow-hidden">
-                <button className="px-3 py-1 bg-white text-cyan-600 font-bold hover:bg-cyan-50 text-xs uppercase transition-colors">Mês</button>
-                <button className="px-3 py-1 bg-white text-gray-400 font-bold hover:bg-gray-50 text-xs uppercase transition-colors border-l border-gray-100">Ano</button>
-            </div>
+
              
              {/* Simple Selectors */}
             <select 
@@ -436,14 +433,14 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ summary, transactions,
                      </div>
                 </div>
 
-                 <div className="bg-cyan-500 rounded-xl shadow-md p-4 text-white relative overflow-hidden group">
+                 <div className="bg-orange-500 rounded-xl shadow-md p-4 text-white relative overflow-hidden group">
                      <div className="relative z-10">
                         <p className="font-bold text-sm opacity-90">A Pagar Hoje</p>
                         <p className="text-2xl font-bold mt-1">R$ {toPayToday.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
                         <p className="text-[10px] opacity-75 mt-1">Restante do mês: R$ {summary.pendingExpense.toLocaleString('pt-BR')}</p>
                         
                         <div className="flex items-center justify-between mt-4">
-                             <button onClick={() => onOpenNewTransaction('EXPENSE')} className="bg-white text-cyan-600 text-[10px] font-bold px-3 py-1.5 rounded shadow-sm hover:bg-gray-50 transition-colors uppercase">
+                             <button onClick={() => onOpenNewTransaction('EXPENSE')} className="bg-white text-orange-600 text-[10px] font-bold px-3 py-1.5 rounded shadow-sm hover:bg-gray-50 transition-colors uppercase">
                                  Novo Pagamento
                              </button>
                              <button className="text-[10px] hover:underline opacity-90">Ver todos</button>
@@ -460,7 +457,7 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ summary, transactions,
                      </div>
                      <div>
                         <p className="text-[10px] font-bold text-gray-500">Recebimentos em Atraso</p>
-                        <p className={`text-lg font-bold ${overdueReceivables > 0 ? 'text-red-500' : 'text-blue-500'}`}>R$ {overdueReceivables.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                        <p className="text-lg font-bold text-blue-500">R$ {overdueReceivables.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
                         <p className="text-[8px] text-gray-400">Atualizado em {new Date().toLocaleTimeString()}</p>
                      </div>
                 </div>

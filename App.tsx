@@ -297,8 +297,8 @@ export default function App() {
     if (hasChildren && !force) {
       setConfirmModal({
         isOpen: true,
-        title: "AÃ§Ãµes NecessÃ¡rias",
-        message: `Este lanÃ§amento possui baixas ou parcelas vinculadas. Exclua primeiro os lanÃ§amentos "filhos" para poder remover este lanÃ§amento pai.`,
+        title: "Ações Necessárias",
+        message: `Este lançamento possui baixas ou parcelas vinculadas. Exclua primeiro os lançamentos "filhos" para poder remover este lançamento pai.`,
         onConfirm: () =>
           setConfirmModal((prev) => ({ ...prev, isOpen: false })),
         variant: "warning",
@@ -308,8 +308,8 @@ export default function App() {
 
     setConfirmModal({
       isOpen: true,
-      title: "Confirmar ExclusÃ£o",
-      message: `Deseja realmente excluir "${target.description}"? Esta aÃ§Ã£o nÃ£o pode ser desfeita.`,
+      title: "Confirmar Exclusão",
+      message: `Deseja realmente excluir "${target.description}"? Esta ação não pode ser desfeita.`,
       onConfirm: async () => {
         setConfirmModal((prev) => ({ ...prev, isOpen: false }));
         try {
@@ -323,7 +323,7 @@ export default function App() {
           await fetchData(currentUser.id);
         } catch (error) {
           console.error("Erro ao excluir:", error);
-          alert("Ocorreu um erro ao excluir o lanÃ§amento.");
+          alert("Ocorreu um erro ao excluir o lançamento.");
         } finally {
           setLoadingData(false);
         }
@@ -801,7 +801,7 @@ export default function App() {
           </button>
         </div>
 
-        {/* PERFIL DO USUÃRIO */}
+        {/* PERFIL DO USUÁRIO */}
         <div
           onClick={() => handleNavClick("SETTINGS")}
           className={`mx-3 mt-4 p-3 rounded-xl transition-all cursor-pointer ${activeView === "SETTINGS" ? "bg-blue-50 border border-blue-100" : "hover:bg-gray-50 border border-transparent"} group`}
@@ -1064,7 +1064,7 @@ export default function App() {
         />
       )}
 
-      {/* MODAL DE TRANSAÃ‡ÃƒO (EXPANSÃVEL) */}
+      {/* MODAL DE TRANSAÃ‡ÃƒO (EXPANSÍVEL) */}
       <TransactionModal
         isOpen={isModalOpen}
         onClose={() => {

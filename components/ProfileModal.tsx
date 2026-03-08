@@ -51,7 +51,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onUpd
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        alert("A imagem deve ter no mÃ¡ximo 2MB.");
+        alert("A imagem deve ter no máximo 2MB.");
         return;
       }
       const reader = new FileReader();
@@ -83,7 +83,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onUpd
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPass !== confirmPass) {
-        setErrorMsg('As novas senhas nÃ£o coincidem.');
+        setErrorMsg('As novas senhas não coincidem.');
         return;
     }
     if (newPass.length < 6) {
@@ -111,7 +111,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onUpd
   const handleAddSubUser = async () => {
     if (!newSubUserName.trim()) return;
     if (!newSubUserEmail.trim() || !newSubUserPassword.trim()) {
-        setErrorMsg("Email e senha sÃ£o obrigatÃ³rios para usuÃ¡rios adicionais.");
+        setErrorMsg("Email e senha são obrigatórios para usuários adicionais.");
         return;
     }
     
@@ -157,7 +157,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onUpd
         
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-            <h3 className="font-bold text-gray-900 text-lg">ConfiguraÃ§Ãµes da Conta</h3>
+            <h3 className="font-bold text-gray-900 text-lg">Configurações da Conta</h3>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-200 transition-colors">
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
@@ -178,14 +178,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onUpd
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'SECURITY' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-blue-100' : 'text-gray-600 hover:bg-white/50'}`}
                 >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                    SeguranÃ§a
+                    Segurança
                 </button>
                 <button 
                     onClick={() => { setActiveTab('USERS'); setSuccessMsg(''); setErrorMsg(''); }}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'USERS' ? 'bg-white text-blue-600 shadow-sm ring-1 ring-blue-100' : 'text-gray-600 hover:bg-white/50'}`}
                 >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                    UsuÃ¡rios
+                    Usuários
                 </button>
             </div>
 
@@ -228,7 +228,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onUpd
                             </div>
                             <div>
                                 <h4 className="text-lg font-bold text-gray-900">Sua Foto</h4>
-                                <p className="text-sm text-gray-500">Isso serÃ¡ exibido no seu perfil.</p>
+                                <p className="text-sm text-gray-500">Isso será exibido no seu perfil.</p>
                             </div>
                         </div>
 
@@ -252,7 +252,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onUpd
                         </div>
 
                         <div className="pt-4 border-t border-gray-100 flex justify-end">
-                            <Button type="submit" isLoading={isLoading} className="shadow-lg shadow-blue-500/20">Salvar AlteraÃ§Ãµes</Button>
+                            <Button type="submit" isLoading={isLoading} className="shadow-lg shadow-blue-500/20">Salvar Alterações</Button>
                         </div>
                     </form>
                 )}
@@ -305,12 +305,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onUpd
                 {activeTab === 'USERS' && (
                     <div className="space-y-6">
                         <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                            <h4 className="font-bold text-blue-900 mb-1">Membros da FamÃ­lia / Equipe</h4>
-                            <p className="text-sm text-blue-700">Adicione pessoas que podem acessar esta conta com login prÃ³prio.</p>
+                            <h4 className="font-bold text-blue-900 mb-1">Membros da Família / Equipe</h4>
+                            <p className="text-sm text-blue-700">Adicione pessoas que podem acessar esta conta com login próprio.</p>
                         </div>
 
                         <div className="space-y-3">
-                            {subUsers.length === 0 && <p className="text-center text-gray-400 py-4 text-sm">Nenhum usuÃ¡rio adicional.</p>}
+                            {subUsers.length === 0 && <p className="text-center text-gray-400 py-4 text-sm">Nenhum usuário adicional.</p>}
                             {subUsers.map(u => (
                                 <div key={u.id} className="flex flex-col p-3 bg-white border border-gray-100 rounded-lg shadow-sm">
                                     <div className="flex items-center justify-between">
@@ -332,9 +332,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onUpd
                                         </button>
                                     </div>
                                     <div className="mt-2 flex flex-wrap gap-1">
-                                        {u.permissions?.manageTransactions && <span className="text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full border border-green-100">LanÃ§amentos</span>}
+                                        {u.permissions?.manageTransactions && <span className="text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full border border-green-100">Lançamentos</span>}
                                         {u.permissions?.manageAccounts && <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-100">Contas</span>}
-                                        {u.permissions?.viewReports && <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-100">RelatÃ³rios</span>}
+                                        {u.permissions?.viewReports && <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-100">Relatórios</span>}
                                         {!u.permissions?.manageTransactions && !u.permissions?.manageAccounts && <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Visualizador</span>}
                                     </div>
                                 </div>
@@ -347,7 +347,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onUpd
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <input 
                                         type="text"
-                                        placeholder="Nome (Ex: Conjuge, SÃ³cio)"
+                                        placeholder="Nome (Ex: Conjuge, Sócio)"
                                         value={newSubUserName}
                                         onChange={(e) => setNewSubUserName(e.target.value)}
                                         className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
@@ -369,7 +369,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onUpd
                                 />
                                 
                                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">PermissÃµes de Acesso</p>
+                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Permissões de Acesso</p>
                                     <div className="grid grid-cols-2 gap-2 text-sm">
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input type="checkbox" checked={newPermissions.viewDashboard} onChange={() => toggleNewPermission('viewDashboard')} className="rounded text-blue-600 focus:ring-blue-500" />
@@ -377,7 +377,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onUpd
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input type="checkbox" checked={newPermissions.manageTransactions} onChange={() => toggleNewPermission('manageTransactions')} className="rounded text-blue-600 focus:ring-blue-500" />
-                                            <span>Gerenciar LanÃ§amentos</span>
+                                            <span>Gerenciar Lançamentos</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input type="checkbox" checked={newPermissions.manageAccounts} onChange={() => toggleNewPermission('manageAccounts')} className="rounded text-blue-600 focus:ring-blue-500" />
@@ -389,16 +389,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ user, onClose, onUpd
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input type="checkbox" checked={newPermissions.viewReports} onChange={() => toggleNewPermission('viewReports')} className="rounded text-blue-600 focus:ring-blue-500" />
-                                            <span>Acessar RelatÃ³rios</span>
+                                            <span>Acessar Relatórios</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input type="checkbox" checked={newPermissions.viewSettings} onChange={() => toggleNewPermission('viewSettings')} className="rounded text-blue-600 focus:ring-blue-500" />
-                                            <span>Acessar ConfiguraÃ§Ãµes</span>
+                                            <span>Acessar Configurações</span>
                                         </label>
                                     </div>
                                 </div>
 
-                                <Button onClick={handleAddSubUser} disabled={!newSubUserName.trim() || !newSubUserEmail.trim() || !newSubUserPassword.trim()} variant="secondary">Adicionar UsuÃ¡rio</Button>
+                                <Button onClick={handleAddSubUser} disabled={!newSubUserName.trim() || !newSubUserEmail.trim() || !newSubUserPassword.trim()} variant="secondary">Adicionar Usuário</Button>
                             </div>
                         </div>
                     </div>

@@ -68,7 +68,7 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
         const isValidDoc = validateDoc(document, type);
         
         if(!isValidDoc && document.length > 0) {
-            alert(`Documento invÃ¡lido para ${accountType === 'PERSONAL' ? 'Pessoa FÃ­sica' : 'Pessoa JurÃ­dica'}`);
+            alert(`Documento inválido para ${accountType === 'PERSONAL' ? 'Pessoa Física' : 'Pessoa Jurídica'}`);
             return;
         }
 
@@ -88,7 +88,7 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
             onClose();
         } catch (error) {
             console.error("Erro ao salvar:", error);
-            alert("Erro ao salvar alteraÃ§Ãµes.");
+            alert("Erro ao salvar alterações.");
         } finally {
             setIsLoading(false);
         }
@@ -129,7 +129,7 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
                         
                         <div className="space-y-6">
                             <div>
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Nome / RazÃ£o Social</label>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Nome / Razão Social</label>
                                 <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-5 py-3.5 bg-gray-50 hover:bg-gray-100 focus:bg-white border-none rounded-xl focus:ring-2 focus:ring-blue-500/20 text-gray-900 font-bold transition-all outline-none" required />
                             </div>
                             
@@ -140,12 +140,12 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">NÃ­vel Administrativo</label>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Nível Administrativo</label>
                                     <div className="relative">
                                         <select value={role} onChange={e => setRole(e.target.value as any)} className="w-full px-5 py-3.5 bg-gray-50 hover:bg-gray-100 focus:bg-white border-none rounded-xl focus:ring-2 focus:ring-blue-500/20 text-blue-600 font-bold transition-all outline-none appearance-none cursor-pointer">
-                                            <option value="USER">USUÃRIO PADRÃƒO (CLIENTE)</option>
+                                            <option value="USER">USUÁRIO PADRÃƒO (CLIENTE)</option>
                                             <option value="ADMIN">ADMINISTRADOR DO SISTEMA</option>
-                                            <option value="SUPER_ADMIN">SUPER USUÃRIO (ROOT)</option>
+                                            <option value="SUPER_ADMIN">SUPER USUÁRIO (ROOT)</option>
                                         </select>
                                         <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -157,8 +157,8 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
                                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Categoria de Entidade</label>
                                      <div className="relative">
                                         <select value={accountType} onChange={e => setAccountType(e.target.value as any)} className="w-full px-5 py-3.5 bg-gray-50 hover:bg-gray-100 focus:bg-white border-none rounded-xl focus:ring-2 focus:ring-blue-500/20 text-gray-900 font-medium transition-all outline-none appearance-none cursor-pointer">
-                                            <option value="PERSONAL">PESSOA FÃSICA (CPF)</option>
-                                            <option value="BUSINESS">PESSOA JURÃDICA (CNPJ)</option>
+                                            <option value="PERSONAL">PESSOA FÍSICA (CPF)</option>
+                                            <option value="BUSINESS">PESSOA JURÍDICA (CNPJ)</option>
                                         </select>
                                         <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -180,8 +180,8 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
                     </div>
 
                     <div className="flex gap-4">
-                        <Button type="button" variant="outline" className="h-14 px-8 rounded-xl font-bold uppercase text-xs flex-1 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all text-gray-600" onClick={onClose}>Abandonar AlteraÃ§Ãµes</Button>
-                        <Button type="submit" className="h-14 px-8 rounded-xl font-bold uppercase text-xs flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 transition-all hover:-translate-y-0.5" isLoading={isLoading}>Consolidar MudanÃ§as</Button>
+                        <Button type="button" variant="outline" className="h-14 px-8 rounded-xl font-bold uppercase text-xs flex-1 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all text-gray-600" onClick={onClose}>Abandonar Alterações</Button>
+                        <Button type="submit" className="h-14 px-8 rounded-xl font-bold uppercase text-xs flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 transition-all hover:-translate-y-0.5" isLoading={isLoading}>Consolidar Mudanças</Button>
                     </div>
                 </div>
 
@@ -214,7 +214,7 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
                                 paymentStatus === 'SUSPENDED' ? 'bg-red-50 border-red-100 text-red-700' :
                                 'bg-gray-50 border-gray-100 text-gray-700'
                             }`}>
-                                <label className="block text-[10px] font-black opacity-60 uppercase tracking-widest mb-3">Status de CobranÃ§a</label>
+                                <label className="block text-[10px] font-black opacity-60 uppercase tracking-widest mb-3">Status de Cobrança</label>
                                 <div className="relative">
                                     <select value={paymentStatus} onChange={e => setPaymentStatus(e.target.value as any)} className="w-full bg-transparent outline-none font-black text-base uppercase cursor-pointer appearance-none">
                                         <option value="PAID">PAGAMENTO OK</option>
@@ -240,7 +240,7 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
                             </div>
 
                             <div className="px-1">
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Valor UnitÃ¡rio</label>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Valor Unitário</label>
                                 <div className="relative group">
                                     <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-gray-400 group-focus-within:text-blue-500 transition-colors">R$</span>
                                     <input type="number" step="0.01" value={subscriptionPrice} onChange={e => setSubscriptionPrice(Number(e.target.value))} className="w-full pl-14 pr-6 py-4 bg-white border border-gray-200 rounded-2xl focus:border-blue-500 outline-none transition-all font-black text-3xl text-gray-800 shadow-sm" />
@@ -300,7 +300,7 @@ export const AdminUsers: React.FC = () => {
             const expDate = new Date(user.expirationDate);
             if (now > expDate) {
                 const confirmed = window.confirm(
-                    `A licenÃ§a deste usuÃ¡rio venceu em ${expDate.toLocaleDateString('pt-BR')}. \n\nDeseja liberar o acesso MANUALMENTE mesmo assim?`
+                    `A licença deste usuário venceu em ${expDate.toLocaleDateString('pt-BR')}. \n\nDeseja liberar o acesso MANUALMENTE mesmo assim?`
                 );
                 if (!confirmed) {
                     setIsLoading(false);
@@ -364,7 +364,7 @@ export const AdminUsers: React.FC = () => {
             {/* Header and Filters */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900">GestÃ£o de Clientes & Assinaturas</h2>
+                    <h2 className="text-xl font-bold text-gray-900">Gestão de Clientes & Assinaturas</h2>
                     <p className="text-gray-500 text-sm">Controle financeiro, planos e vencimentos.</p>
                 </div>
                 <div className="flex gap-2">
@@ -424,7 +424,7 @@ export const AdminUsers: React.FC = () => {
                                 <th className="px-6 py-4 text-center">Status Pagto.</th>
                                 <th className="px-6 py-4 text-center">Acesso App</th>
                                 <th className="px-6 py-4">Vencimento</th>
-                                <th className="px-6 py-4 text-right">AÃ§Ãµes</th>
+                                <th className="px-6 py-4 text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
