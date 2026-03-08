@@ -3,6 +3,18 @@ import {
   User, Account, Category, Transaction, FinancialSummary,
   PaymentMethod, Plan
 } from '../types';
+import { authService } from './authService';
+
+const checkReadOnly = () => {
+  const user = authService.getCurrentUser();
+  if (user && user.role === 'USER') {
+    const isOverdue = user.paymentStatus === 'OVERDUE' || new Date(user.expirationDate).getTime() < new Date().getTime();
+    if (isOverdue) {
+      alert("Acesso Restrito: Você está no modo somente leitura. Regularize sua assinatura para fazer alterações nos dados.");
+      throw new Error("Acesso Restrito (Somente Leitura).");
+    }
+  }
+};
 
 export const dataService = {
   // --- TRANSACTIONS ---
@@ -41,6 +53,7 @@ export const dataService = {
   },
 
   createTransaction: async (userId: string, transaction: any): Promise<Transaction | null> => {
+    checkReadOnly();
     const dbPayload = {
       id: transaction.id || crypto.randomUUID(),
       user_id: userId,
@@ -140,6 +153,7 @@ export const dataService = {
   },
 
   updateTransaction: async (userId: string, transaction: Transaction): Promise<void> => {
+    checkReadOnly();
     const dbPayload = {
       description: transaction.description,
       amount: transaction.amount,
@@ -167,6 +181,7 @@ export const dataService = {
   },
 
   deleteTransaction: async (userId: string, id: string): Promise<void> => {
+    checkReadOnly();
     const { error } = await supabase
       .from('transactions')
       .delete()
@@ -197,6 +212,7 @@ export const dataService = {
   },
 
   createAccount: async (userId: string, account: Omit<Account, 'id'>): Promise<Account | null> => {
+    checkReadOnly();
     const payload: any = {
       user_id: userId,
       name: account.name,
@@ -219,6 +235,7 @@ export const dataService = {
   },
 
   updateAccount: async (userId: string, account: Account): Promise<void> => {
+    checkReadOnly();
     const payload: any = {
       name: account.name,
       balance: account.balance,
@@ -238,6 +255,7 @@ export const dataService = {
   },
 
   updateAccountBalance: async (userId: string, accountId: string, newBalance: number): Promise<void> => {
+    checkReadOnly();
     const { error } = await supabase
       .from('accounts')
       .update({ balance: newBalance })
@@ -248,6 +266,7 @@ export const dataService = {
   },
 
   deleteAccount: async (userId: string, id: string): Promise<void> => {
+    checkReadOnly();
     const { error } = await supabase
       .from('accounts')
       .delete()
@@ -283,6 +302,7 @@ export const dataService = {
   },
 
   createCategory: async (userId: string, category: Category): Promise<Category | null> => {
+    checkReadOnly();
     const { error } = await supabase
       .from('categories')
       .insert([{
@@ -304,6 +324,7 @@ export const dataService = {
   },
 
   createCategoriesBatch: async (userId: string, categoriesTree: any[]): Promise<void> => {
+    checkReadOnly();
     for (const parent of categoriesTree) {
       const parentId = crypto.randomUUID();
 
@@ -337,6 +358,7 @@ export const dataService = {
   },
 
   updateCategory: async (userId: string, category: Category): Promise<void> => {
+    checkReadOnly();
     const { error } = await supabase
       .from('categories')
       .update({
@@ -354,6 +376,7 @@ export const dataService = {
   },
 
   deleteCategory: async (userId: string, id: string): Promise<void> => {
+    checkReadOnly();
     const { error } = await supabase
       .from('categories')
       .delete()
@@ -374,6 +397,7 @@ export const dataService = {
   },
 
   createPaymentMethod: async (userId: string, name: string): Promise<PaymentMethod | null> => {
+    checkReadOnly();
     const { data, error } = await supabase
       .from('payment_methods')
       .insert([{ user_id: userId, name }])
@@ -388,6 +412,7 @@ export const dataService = {
   },
 
   deletePaymentMethod: async (userId: string, id: string): Promise<void> => {
+    checkReadOnly();
     const { error } = await supabase
       .from('payment_methods')
       .delete()
@@ -432,6 +457,7 @@ export const dataService = {
 
 
   resetUserData: async (userId: string, deleteCategories: boolean): Promise<void> => {
+    checkReadOnly();
     await supabase.from('transactions').delete().eq('user_id', userId);
     await supabase.from('accounts').update({ balance: 0 }).eq('user_id', userId);
     if (deleteCategories) {
@@ -439,6 +465,7 @@ export const dataService = {
     }
   },
   uploadReceipt: async (userId: string, file: File): Promise<string | null> => {
+    checkReadOnly();
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${userId}/${crypto.randomUUID()}.${fileExt}`;
