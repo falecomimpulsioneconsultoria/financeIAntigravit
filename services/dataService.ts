@@ -106,10 +106,7 @@ export const dataService = {
             group_id: groupId,
             installment_current: i + 1,
             installment_total: transaction.recurrenceCount,
-            // For installments, usually only the processed one is paid? Or all if credit card?
-            // Usually user launches "Credit Card Bill" or individual expenses. 
-            // Let's assume user input status applies to all or logic handles it. 
-            // For 'PENDING', all pending.
+            status: i === 0 ? dbPayload.status : 'PENDING'
           });
         }
 
@@ -130,7 +127,8 @@ export const dataService = {
             id: i === 0 ? mainTransactionId : crypto.randomUUID(),
             date: dateStr,
             group_id: groupId,
-            is_recurring: true
+            is_recurring: true,
+            status: i === 0 ? dbPayload.status : 'PENDING'
           });
         }
         const { error } = await supabase.from('transactions').insert(transactionsToInsert);
@@ -217,6 +215,7 @@ export const dataService = {
       user_id: userId,
       name: account.name,
       balance: account.balance,
+      initial_balance: account.balance,
       color: account.color,
       type: account.type || 'CHECKING'
     };
@@ -236,9 +235,9 @@ export const dataService = {
 
   updateAccount: async (userId: string, account: Account): Promise<void> => {
     checkReadOnly();
+    // Do NOT include balance here — it's managed by the database trigger
     const payload: any = {
       name: account.name,
-      balance: account.balance,
       color: account.color,
       type: account.type
     };
@@ -254,16 +253,8 @@ export const dataService = {
     }
   },
 
-  updateAccountBalance: async (userId: string, accountId: string, newBalance: number): Promise<void> => {
-    checkReadOnly();
-    const { error } = await supabase
-      .from('accounts')
-      .update({ balance: newBalance })
-      .eq('id', accountId)
-      .eq('user_id', userId);
-
-    if (error) console.error('Error updating balance:', error.message);
-  },
+  // updateAccountBalance removed — balance is now managed by the database trigger
+  // (tr_recalculate_balance) automatically on every transaction change.
 
   deleteAccount: async (userId: string, id: string): Promise<void> => {
     checkReadOnly();
@@ -459,7 +450,7 @@ export const dataService = {
   resetUserData: async (userId: string, deleteCategories: boolean): Promise<void> => {
     checkReadOnly();
     await supabase.from('transactions').delete().eq('user_id', userId);
-    await supabase.from('accounts').update({ balance: 0 }).eq('user_id', userId);
+    await supabase.from('accounts').update({ balance: 0, initial_balance: 0 }).eq('user_id', userId);
     if (deleteCategories) {
       await supabase.from('categories').delete().eq('user_id', userId);
     }

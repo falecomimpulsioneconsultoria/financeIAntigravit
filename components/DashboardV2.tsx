@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FinancialSummary, Transaction, Account, Category, User } from '../types';
 import { ResponsiveContainer, ComposedChart, Line, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, Cell } from 'recharts';
 
@@ -21,8 +21,18 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ summary, transactions,
   
   // State for Widgets
   const [top15Filter, setTop15Filter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
-  const [selectedCalendarDay, setSelectedCalendarDay] = useState<number | null>(null);
+  const [selectedCalendarDay, setSelectedCalendarDay] = useState<number | null>(new Date().getDate());
   const [showValues, setShowValues] = useState<boolean>(true); // Privacy Toggle State
+
+  // Reset or set selected day when month/year changes
+  useEffect(() => {
+    const today = new Date();
+    if (selectedMonth === today.getMonth() && selectedYear === today.getFullYear()) {
+      setSelectedCalendarDay(today.getDate());
+    } else {
+      setSelectedCalendarDay(null);
+    }
+  }, [selectedMonth, selectedYear]);
   
   // Calculate Start/End dates based on selection
   const { startDate, endDate } = useMemo(() => {
@@ -36,18 +46,51 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ summary, transactions,
   // Saldo Total
   const totalBalance = useMemo(() => accounts.reduce((acc, a) => acc + a.balance, 0), [accounts]);
 
+  // Map children first for all logic
+  const childrenMap = useMemo(() => {
+       const map = new Map<string, Transaction[]>();
+       transactions.filter(t => t.parentId).forEach(t => {
+           const list = map.get(t.parentId!) || [];
+           list.push(t);
+           map.set(t.parentId!, list);
+       });
+       return map;
+  }, [transactions]);
+
   // Top 15 Analysis
   const topTransactions = useMemo(() => {
-     return transactions
-      .filter(t => {
-          if (t.status !== 'PAID') return false;
-          if (t.date < startDate || t.date > endDate) return false;
-          if (top15Filter !== 'ALL' && t.type !== top15Filter) return false;
-          return true;
-      })
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 15);
-  }, [transactions, startDate, endDate, top15Filter]);
+      const map = new Map<string, { description: string, amount: number, type: 'INCOME' | 'EXPENSE' | 'TRANSFER' }>();
+
+      transactions.forEach(t => {
+          if (t.status !== 'PAID') return;
+          if (t.date < startDate || t.date > endDate) return;
+          if (top15Filter !== 'ALL' && t.type !== top15Filter) return;
+
+          if (t.parentId) {
+              const parent = transactions.find(p => p.id === t.parentId);
+              if (parent) {
+                  const current = map.get(parent.id) || { description: parent.description, amount: 0, type: parent.type };
+                  current.amount += t.amount;
+                  map.set(parent.id, current);
+              } else {
+                  const current = map.get(t.id) || { description: t.description, amount: 0, type: t.type };
+                  current.amount += t.amount;
+                  map.set(t.id, current);
+              }
+          } else {
+              const hasChildren = childrenMap.has(t.id);
+              if (!hasChildren) {
+                  const current = map.get(t.id) || { description: t.description, amount: 0, type: t.type };
+                  current.amount += t.amount;
+                  map.set(t.id, current);
+              }
+          }
+      });
+
+      return Array.from(map.values())
+          .sort((a, b) => b.amount - a.amount)
+          .slice(0, 15);
+  }, [transactions, startDate, endDate, top15Filter, childrenMap]);
 
   // Today's summary
   const todayStr = new Date().toISOString().split('T')[0];
@@ -60,15 +103,23 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ summary, transactions,
     let overduePay = 0;
 
     transactions.forEach(t => {
+       if (t.parentId) return;
+
        if (t.status === 'PENDING') {
-         if (t.date === today) {
-           if (t.type === 'INCOME') receive += t.amount;
-           if (t.type === 'EXPENSE') pay += t.amount;
-         }
-         if (t.date < today) {
-            if (t.type === 'INCOME') overdueRec += t.amount;
-            if (t.type === 'EXPENSE') overduePay += t.amount;
-         }
+           const children = childrenMap.get(t.id) || [];
+           const paidChildren = children.reduce((sum, c) => sum + (c.status === 'PAID' ? c.amount : 0), 0);
+           const remaining = Math.max(0, t.amount - paidChildren);
+
+           if (remaining > 0) {
+               if (t.date === today) {
+                 if (t.type === 'INCOME') receive += remaining;
+                 if (t.type === 'EXPENSE') pay += remaining;
+               }
+               if (t.date < today) {
+                  if (t.type === 'INCOME') overdueRec += remaining;
+                  if (t.type === 'EXPENSE') overduePay += remaining;
+               }
+           }
        }
     });
 
@@ -78,20 +129,12 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ summary, transactions,
       overdueReceivables: overdueRec,
       overduePayables: overduePay 
     };
-  }, [transactions]);
+  }, [transactions, childrenMap]);
 
   // Calculates Partial Defaults (Quanto falta pagar/receber de parciais)
   const { partialIncomeRemaining, partialExpenseRemaining } = useMemo(() => {
         let inc = 0;
         let exp = 0;
-        
-        // Map children first
-        const childrenMap = new Map<string, Transaction[]>();
-        transactions.filter(t => t.parentId).forEach(t => {
-            const list = childrenMap.get(t.parentId!) || [];
-            list.push(t);
-            childrenMap.set(t.parentId!, list);
-        });
 
         // Itera parents
         transactions.filter(t => !t.parentId && t.status !== 'PAID').forEach(t => {
@@ -108,17 +151,10 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ summary, transactions,
         });
 
         return { partialIncomeRemaining: inc, partialExpenseRemaining: exp };
-  }, [transactions]);
+  }, [transactions, childrenMap]);
 
   // Chart Data (Fluxo de Caixa)
   const chartData = useMemo(() => {
-    // 1. Map children to handle partials
-    const childrenMap = new Map<string, Transaction[]>();
-    transactions.filter(t => t.parentId).forEach(t => {
-        const list = childrenMap.get(t.parentId!) || [];
-        list.push(t);
-        childrenMap.set(t.parentId!, list);
-    });
 
     const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
     const data = [];
@@ -192,13 +228,13 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ summary, transactions,
         data.push({
           day: i,
           Receitas: dailyIncome,
-          Despesas: dailyExpense,
+          Despesas: -dailyExpense,
           Net: net,
           Accumulated: accumulated 
         });
     }
     return data;
-  }, [transactions, selectedMonth, selectedYear]);
+  }, [transactions, selectedMonth, selectedYear, childrenMap]);
 
 
   return (
@@ -541,26 +577,56 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ summary, transactions,
                                 tickFormatter={(value) => value >= 1000 ? `${(value/1000).toFixed(0)}k` : value} 
                             />
                             <Tooltip 
-                                formatter={(value: number, name: string) => [
-                                    `R$ ${value.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`,
-                                    name === 'Accumulated' ? 'Saldo Acumulado' : (name === 'Net' ? 'Saldo do Dia' : name)
-                                ]}
-                                contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
+                                content={({ active, payload, label }) => {
+                                    if (active && payload && payload.length) {
+                                        const data = payload[0].payload;
+                                        return (
+                                            <div className="bg-white p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 flex flex-col gap-2 min-w-[240px] transition-all duration-200">
+                                                <div className="flex justify-between items-center border-b border-gray-100 pb-2 mb-1">
+                                                     <p className="text-gray-400 font-bold text-[10px] uppercase tracking-wider">Dia do Mês</p>
+                                                     <p className="text-gray-800 font-black text-lg">{label}</p>
+                                                </div>
+                                                
+                                                {data.Receitas > 0 && (
+                                                    <div className="flex justify-between items-center gap-4 text-xs font-bold text-emerald-500">
+                                                       <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>Entradas</span>
+                                                       <span>+ R$ {data.Receitas.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                                                    </div>
+                                                )}
+                                                
+                                                {data.Despesas < 0 && (
+                                                    <div className="flex justify-between items-center gap-4 text-xs font-bold text-rose-500">
+                                                       <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>Saídas</span>
+                                                       <span>- R$ {Math.abs(data.Despesas).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex justify-between items-center gap-4 text-xs font-bold text-amber-500 pt-1 mt-1 border-t border-gray-50/50">
+                                                   <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>Acumulado</span>
+                                                   <span>R$ {data.Accumulated.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                                                </div>
+                                                
+                                                <div className="flex justify-between items-center gap-4 text-sm font-black text-gray-800 pt-2 mt-1 border-t border-gray-100">
+                                                   <span>Saldo</span>
+                                                   <span>R$ {data.Net.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                }}
+                                cursor={{fill: '#f3f4f6', opacity: 0.5}}
                             />
                             <ReferenceLine y={0} stroke="#9ca3af" strokeDasharray="3 3" />
-                            
-                            <Bar dataKey="Net" barSize={12} radius={[2, 2, 2, 2]}>
-                                {chartData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.Net >= 0 ? '#06b6d4' : '#0284c7'} />
-                                ))}
-                            </Bar>
+                            <Bar dataKey="Receitas" barSize={12} fill="#14b8a6" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="Despesas" barSize={12} fill="#f43f5e" radius={[0, 0, 4, 4]} />
 
                             <Line 
                                 type="monotone" 
-                                dataKey="Accumulated" 
-                                stroke="#f59e0b" 
+                                dataKey="Net" 
+                                stroke="#facc15" 
                                 strokeWidth={2}
-                                dot={{r: 4, fill: 'white', stroke: '#f59e0b', strokeWidth: 2}}
+                                dot={{r: 4, fill: 'white', stroke: '#facc15', strokeWidth: 2}}
                                 activeDot={{r: 6}}
                             />
                         </ComposedChart>
@@ -568,10 +634,16 @@ export const DashboardV2: React.FC<DashboardV2Props> = ({ summary, transactions,
                 </div>
                 
                 {/* Legend */}
-                <div className="flex justify-center gap-6 pb-4 text-[10px] uppercase font-bold text-gray-500 bg-white">
-                    <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> Recebimentos</div>
-                    <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span> Pagamentos</div>
-                    <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-sky-600 border border-white shadow-sm ring-1 ring-sky-600"></span> Saldo Acumulado no Período</div>
+                <div className="flex justify-center gap-6 pb-4 text-[11px] font-bold text-gray-500 bg-white">
+                    <div className="flex items-center gap-1.5"><span className="w-4 h-2 rounded-sm bg-[#14b8a6]"></span> Receitas</div>
+                    <div className="flex items-center gap-1.5"><span className="w-4 h-2 rounded-sm bg-[#f43f5e]"></span> Despesas</div>
+                    <div className="flex items-center gap-1.5">
+                         <div className="flex items-center relative w-4 h-2">
+                              <div className="w-full h-0.5 bg-[#facc15] absolute top-1/2 -translate-y-1/2"></div>
+                              <div className="w-2 h-2 rounded-full border-2 border-[#facc15] bg-white absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-10"></div>
+                         </div>
+                         Saldo
+                    </div>
                 </div>
 
                 {/* Footer Strip */}

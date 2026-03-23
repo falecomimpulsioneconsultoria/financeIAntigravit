@@ -1,4 +1,4 @@
-﻿// aria-label added for accessibility
+// aria-label added for accessibility
 import React, { useState, useEffect, useMemo } from "react";
 // import { Dashboard } from './components/Dashboard'; // REMOVED
 import { DashboardV2 } from "./components/DashboardV2";
@@ -176,17 +176,8 @@ export default function App() {
     }
   };
 
-  const updateAccountBalance = async (accId: string, amount: number) => {
-    if (!currentUser) return;
-    const acc = accounts.find((a) => a.id === accId);
-    if (acc) {
-      const newBalance = acc.balance + amount;
-      await dataService.updateAccountBalance(currentUser.id, accId, newBalance);
-      setAccounts((prev) =>
-        prev.map((a) => (a.id === accId ? { ...a, balance: newBalance } : a)),
-      );
-    }
-  };
+  // Balance is now automatically recalculated by the database trigger
+  // (tr_recalculate_balance) on every INSERT/UPDATE/DELETE on transactions.
 
   const handleSaveTransaction = async (data: TransactionFormData) => {
     if (!currentUser) return;
@@ -206,70 +197,43 @@ export default function App() {
     };
 
     if (editingTransaction) {
-      if (editingTransaction.status === "PAID") {
-        let reversal =
-          editingTransaction.type === "INCOME"
-            ? -editingTransaction.amount
-            : editingTransaction.amount;
-        await updateAccountBalance(editingTransaction.accountId, reversal);
-        if (
-          editingTransaction.type === "TRANSFER" &&
-          editingTransaction.toAccountId
-        ) {
-          await updateAccountBalance(
-            editingTransaction.toAccountId,
-            -editingTransaction.amount,
-          );
-        }
-      }
-
       const updatedTx = {
         ...payload,
         id: editingTransaction.id,
       } as Transaction;
-      await dataService.updateTransaction(currentUser.id, updatedTx);
 
-      if (payload.status === "PAID") {
-        let change =
-          payload.type === "INCOME" ? payload.amount : -payload.amount;
-        await updateAccountBalance(payload.accountId, change);
-        if (payload.type === "TRANSFER" && payload.toAccountId) {
-          await updateAccountBalance(payload.toAccountId, payload.amount);
+      // Handle Parent-to-Child Status Sync
+      const children = transactions.filter(t => t.parentId === editingTransaction.id);
+      if (children.length > 0 && payload.status !== editingTransaction.status) {
+        for (const child of children) {
+          if (child.status !== payload.status) {
+            const updatedChild = { ...child, status: payload.status };
+            await dataService.updateTransaction(currentUser.id, updatedChild);
+          }
         }
       }
+
+      // Handle Child-to-Parent Status Sync
+      if (editingTransaction.parentId) {
+         const siblings = transactions.filter(t => t.parentId === editingTransaction.parentId && t.id !== editingTransaction.id);
+         const allSiblingsPaid = siblings.every(s => s.status === "PAID");
+         const parent = transactions.find(t => t.id === editingTransaction.parentId);
+         
+         if (parent) {
+            if (payload.status === "PAID" && allSiblingsPaid) {
+               await dataService.updateTransaction(currentUser.id, { ...parent, status: "PAID" });
+            } else if (payload.status === "PENDING") {
+               await dataService.updateTransaction(currentUser.id, { ...parent, status: "PENDING" });
+            }
+         }
+      }
+
+      await dataService.updateTransaction(currentUser.id, updatedTx);
+      // Balance is automatically recalculated by database trigger
       await fetchData(currentUser.id);
     } else {
-      const result = await dataService.createTransaction(
-        currentUser.id,
-        payload,
-      );
-
-      if (result && payload.status === "PAID") {
-        let amountToUpdate = payload.amount;
-        // If installment, calculate first installment amount if needed, but dataService splits it.
-        // Logic: if installment, createTransaction creates multiple. We need to know which one we are updating balance for.
-        // We assume we update balance for the FIRST one only if paid.
-        if (
-          payload.isRecurring &&
-          payload.recurringType === "INSTALLMENT" &&
-          payload.recurrenceCount
-        ) {
-          amountToUpdate = payload.amount / payload.recurrenceCount;
-        }
-
-        if (
-          !payload.isRecurring ||
-          payload.recurringType === "FIXED" ||
-          (payload.isRecurring && payload.recurringType === "INSTALLMENT")
-        ) {
-          let change =
-            payload.type === "INCOME" ? amountToUpdate : -amountToUpdate;
-          await updateAccountBalance(payload.accountId, change);
-          if (payload.type === "TRANSFER" && payload.toAccountId)
-            await updateAccountBalance(payload.toAccountId, -change);
-        }
-      }
-
+      await dataService.createTransaction(currentUser.id, payload);
+      // Balance is automatically recalculated by database trigger
       await fetchData(currentUser.id);
     }
     setIsModalOpen(false);
@@ -302,11 +266,7 @@ export default function App() {
         setConfirmModal((prev) => ({ ...prev, isOpen: false }));
         try {
           setLoadingData(true);
-          if (target.status === "PAID") {
-            let change =
-              target.type === "INCOME" ? -target.amount : target.amount;
-            await updateAccountBalance(target.accountId, change);
-          }
+          // Balance is automatically recalculated by database trigger
           await dataService.deleteTransaction(currentUser.id, id);
           await fetchData(currentUser.id);
         } catch (error) {
@@ -356,54 +316,127 @@ export default function App() {
       if (url) finalReceiptUrl = url;
     }
 
-    const childTx: Transaction = {
-      ...parentTx,
-      id: crypto.randomUUID(),
-      parentId: parentTx.id,
-      amount: actualAmount,
-      accountId: accountId,
-      paymentMethodId: paymentMethodId,
-      tags: tags,
-      observation: observation,
-      receiptUrl: finalReceiptUrl,
-      status: "PAID",
-      paymentDate: paymentDate,
-      date: paymentDate,
-      description: description || `Baixa: ${parentTx.description}`,
-      isRecurring: false,
-    };
-
-    let change = childTx.type === "INCOME" ? actualAmount : -actualAmount;
-    await updateAccountBalance(childTx.accountId, change);
-    if (childTx.type === "TRANSFER" && childTx.toAccountId)
-      await updateAccountBalance(childTx.toAccountId, childTx.amount);
-
-    await dataService.createTransaction(currentUser.id, childTx);
-
     const siblings = transactions.filter((t) => t.parentId === parentTx.id);
-    const totalPaid =
-      siblings.reduce(
-        (acc, t) => acc + (t.status === "PAID" ? t.amount : 0),
-        0,
-      ) + actualAmount;
+    const totalPaidBefore = siblings.reduce((acc, t) => acc + (t.status === "PAID" ? t.amount : 0), 0);
 
-    if (totalPaid >= parentTx.amount - 0.01) {
-      await dataService.updateTransaction(currentUser.id, {
+    const isFullAndFirst = (actualAmount >= parentTx.amount - 0.01) && siblings.length === 0;
+
+    if (isFullAndFirst) {
+      // Update parent directly
+      const updatedParent = {
         ...parentTx,
+        accountId: accountId,
+        paymentDate: paymentDate,
+        paymentMethodId: paymentMethodId || parentTx.paymentMethodId,
+        tags: tags && tags.length > 0 ? tags : parentTx.tags,
+        observation: observation || parentTx.observation,
+        receiptUrl: finalReceiptUrl || parentTx.receiptUrl,
+        status: "PAID" as const,
+      };
+
+      await dataService.updateTransaction(currentUser.id, updatedParent);
+      
+    } else {
+      // Create child
+      const childTx: Transaction = {
+        ...parentTx,
+        id: crypto.randomUUID(),
+        parentId: parentTx.id,
+        amount: actualAmount,
+        accountId: accountId,
+        paymentMethodId: paymentMethodId,
+        tags: tags,
+        observation: observation,
+        receiptUrl: finalReceiptUrl,
         status: "PAID",
-      });
+        paymentDate: paymentDate,
+        date: paymentDate,
+        description: description || `Baixa: ${parentTx.description}`,
+        isRecurring: false,
+      };
+
+      await dataService.createTransaction(currentUser.id, childTx);
+
+      const totalPaidAfter = totalPaidBefore + actualAmount;
+      if (totalPaidAfter >= parentTx.amount - 0.01) {
+        await dataService.updateTransaction(currentUser.id, {
+          ...parentTx,
+          status: "PAID",
+        });
+      }
     }
+    // Balance is automatically recalculated by database trigger
     await fetchData(currentUser.id);
+  };
+
+  const handleToggleStatus = async (id: string) => {
+    if (!currentUser) return;
+    const target = transactions.find(t => t.id === id);
+    if (!target) return;
+
+    setLoadingData(true);
+    try {
+      const newStatus = target.status === "PAID" ? "PENDING" : "PAID";
+
+      // 1. If it's a parent, sync to all children
+      const children = transactions.filter(t => t.parentId === id);
+      if (children.length > 0) {
+        for (const child of children) {
+          if (child.status !== newStatus) {
+            await dataService.updateTransaction(currentUser.id, { ...child, status: newStatus });
+          }
+        }
+      }
+
+      // 2. Update the target itself
+      await dataService.updateTransaction(currentUser.id, { ...target, status: newStatus });
+
+      // 3. If it's a child, sync to parent
+      if (target.parentId) {
+        const siblings = transactions.filter(t => t.parentId === target.parentId && t.id !== id);
+        const allSiblingsPaid = siblings.every(s => s.status === "PAID");
+        const parent = transactions.find(t => t.id === target.parentId);
+        
+        if (parent) {
+          if (newStatus === "PAID" && allSiblingsPaid) {
+            await dataService.updateTransaction(currentUser.id, { ...parent, status: "PAID" });
+          } else if (newStatus === "PENDING") {
+            await dataService.updateTransaction(currentUser.id, { ...parent, status: "PENDING" });
+          }
+        }
+      }
+
+      // Balance is automatically recalculated by database trigger
+    } catch (err) {
+      console.error("Error toggling status:", err);
+    } finally {
+      await fetchData(currentUser.id);
+      setLoadingData(false);
+    }
   };
 
   const financialSummary: FinancialSummary = useMemo(() => {
     const rootTransactions = transactions.filter((t) => !t.parentId);
-    const incomeRealized = transactions
-      .filter((t) => t.type === "INCOME" && t.status === "PAID")
-      .reduce((acc, t) => acc + t.amount, 0);
-    const expenseRealized = transactions
-      .filter((t) => t.type === "EXPENSE" && t.status === "PAID")
-      .reduce((acc, t) => acc + t.amount, 0);
+    
+    const incomeRealized = rootTransactions
+      .filter((t) => t.type === "INCOME")
+      .reduce((acc, t) => {
+        const children = transactions.filter(c => c.parentId === t.id);
+        if (children.length > 0) {
+          return acc + children.reduce((sum, c) => sum + (c.status === "PAID" ? c.amount : 0), 0);
+        }
+        return acc + (t.status === "PAID" ? t.amount : 0);
+      }, 0);
+
+    const expenseRealized = rootTransactions
+      .filter((t) => t.type === "EXPENSE")
+      .reduce((acc, t) => {
+        const children = transactions.filter(c => c.parentId === t.id);
+        if (children.length > 0) {
+          return acc + children.reduce((sum, c) => sum + (c.status === "PAID" ? c.amount : 0), 0);
+        }
+        return acc + (t.status === "PAID" ? t.amount : 0);
+      }, 0);
 
     const incomePending = rootTransactions
       .filter((t) => t.type === "INCOME" && t.status === "PENDING")
@@ -593,7 +626,7 @@ export default function App() {
                 setEditingTransaction(t);
                 setIsModalOpen(true);
               }}
-              onToggleStatus={() => {}}
+              onToggleStatus={handleToggleStatus}
               onSettleTransaction={handleSettleTransaction}
               paymentMethods={paymentMethods}
               availableTags={availableTags}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Transaction, Account, Category, TransactionType, RecurrenceType, PaymentMethod } from '../types';
 import { Button } from './ui/Button';
+import { NumericFormat } from 'react-number-format';
 
 interface TransactionFormData extends Omit<Transaction, 'id'> {
     recurrenceCount?: number;
@@ -417,12 +418,15 @@ export function TransactionModal({
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium text-xl">
                                             {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : 'R$'}
                                         </span>
-                                        <input
+                                        <NumericFormat
                                             required
-                                            type="number"
-                                            step="0.01"
                                             value={amount}
-                                            onChange={e => setAmount(e.target.value)}
+                                            onValueChange={(values) => setAmount(values.value || '')}
+                                            thousandSeparator="."
+                                            decimalSeparator=","
+                                            decimalScale={2}
+                                            fixedDecimalScale
+                                            allowNegative={true}
                                             placeholder="0,00"
                                             className={`w-full pl-12 pr-4 py-3 text-3xl font-bold bg-white border-2 rounded-2xl outline-none transition-all placeholder-gray-300
                                             ${type === 'INCOME' ? 'text-emerald-600 border-emerald-100 focus:border-emerald-500/50 focus:bg-emerald-50/10' :

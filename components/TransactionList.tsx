@@ -48,6 +48,7 @@ const TransactionRow: React.FC<{
   onDelete: (id: string) => void;
   onEdit: (t: Transaction) => void;
   onSettle: (t: Transaction, balance: number) => void;
+  onToggleStatus: (id: string) => void;
   highlightedId?: string;
 }> = ({
   tx,
@@ -62,6 +63,7 @@ const TransactionRow: React.FC<{
   onDelete,
   onEdit,
   onSettle,
+  onToggleStatus,
   highlightedId,
 }) => {
   const account = accounts.find((a) => a.id === tx.accountId);
@@ -386,15 +388,19 @@ const TransactionRow: React.FC<{
         {/* AÇÕES */}
         <td className="px-4 py-2 text-right align-middle whitespace-nowrap">
           <div className="inline-flex items-center gap-1">
-            {!isChild && !isFullyPaid && (
+            {!isFullyPaid && (
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onSettle(tx, balance);
+                  if (isChild || hasChildren) {
+                    onToggleStatus(tx.id);
+                  } else {
+                    onSettle(tx, balance);
+                  }
                 }}
                 className="p-1.5 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
-                title="Efetivar"
+                title={isChild || hasChildren ? "Marcar como Pago" : "Efetivar"}
               >
                 <svg
                   className="w-4 h-4"
@@ -408,6 +414,26 @@ const TransactionRow: React.FC<{
                     strokeWidth={2}
                     d="M5 13l4 4L19 7"
                   />
+                </svg>
+              </button>
+            )}
+            {isFullyPaid && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleStatus(tx.id);
+                }}
+                className="p-1.5 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
+                title="Marcar como Pendente"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </button>
             )}
@@ -476,6 +502,7 @@ const TransactionRow: React.FC<{
             onDelete={onDelete}
             onEdit={onEdit}
             onSettle={onSettle}
+            onToggleStatus={onToggleStatus}
           />
         ))}
     </React.Fragment>
@@ -489,6 +516,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   onDelete,
   onEdit,
   onSettleTransaction,
+  onToggleStatus,
   paymentMethods,
   availableTags,
   initialDateRange,
@@ -1314,6 +1342,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                       onToggleExpand={toggleExpand}
                       onDelete={onDelete}
                       onEdit={onEdit}
+                      onToggleStatus={onToggleStatus}
                       onSettle={(t, b) => {
                         setTransactionToSettle(t);
                         setSettleAmount(b.toFixed(2));
