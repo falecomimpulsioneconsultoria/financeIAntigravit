@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { DashboardConfig, User, SubUser, UserPermissions, PaymentMethod, Transaction } from '../types';
 import { Button } from './ui/Button';
 import { authService } from '../services/authService';
@@ -68,6 +68,26 @@ export const Settings: React.FC<SettingsProps> = ({
     const canManageUsers = !isSubUserSession;
     const canChangeSecurity = !isSubUserSession;
     const canViewPreferences = user.activePermissions?.viewSettings;
+
+    useEffect(() => {
+        const fetchMembers = async () => {
+            if (activeTab === 'USERS' && !isSubUserSession) {
+                try {
+                    const members = await authService.getTeamMembers(user.id);
+                    setSubUsers(members.map(m => ({
+                        id: m.id,
+                        name: m.name,
+                        email: m.email,
+                        role: 'VIEWER',
+                        permissions: m.activePermissions || DEFAULT_PERMISSIONS
+                    })));
+                } catch (error) {
+                    console.error("Error fetching team members:", error);
+                }
+            }
+        };
+        fetchMembers();
+    }, [activeTab, user.id, isSubUserSession]);
 
     const accountTypeName = user.accountType === 'BUSINESS' ? 'Conta Empresarial' : 'Conta Pessoal';
     const documentLabel = user.accountType === 'BUSINESS' ? 'CNPJ' : 'CPF';
@@ -151,46 +171,59 @@ export const Settings: React.FC<SettingsProps> = ({
     };
 
     const handleSaveSubUser = async () => {
-        if (!newSubUserName.trim()) return;
-        let updatedList = [...subUsers];
+        if (!newSubUserName.trim() || !newSubUserEmail.trim()) return;
+        setIsLoading(true);
+        setErrorMsg('');
 
-        if (editingSubUserId) {
-            updatedList = subUsers.map(u => {
-                if (u.id === editingSubUserId) {
-                    return {
-                        ...u,
-                        name: newSubUserName,
-                        email: newSubUserEmail,
-                        password: newSubUserPassword.trim() ? newSubUserPassword : u.password,
-                        permissions: newPermissions
-                    };
+        try {
+            if (editingSubUserId) {
+                await authService.updateTeamMember(editingSubUserId, newPermissions, newSubUserName);
+            } else {
+                if (!newSubUserPassword) {
+                    setErrorMsg('Senha é obrigatória para novos usuários.');
+                    setIsLoading(false);
+                    return;
                 }
-                return u;
-            });
-        } else {
-            const newUser: SubUser = {
-                id: crypto.randomUUID(),
-                name: newSubUserName,
-                email: newSubUserEmail,
-                password: newSubUserPassword,
-                role: 'VIEWER',
-                permissions: newPermissions
-            };
-            updatedList.push(newUser);
-        }
+                await authService.createTeamMember(
+                    newSubUserName,
+                    newSubUserEmail,
+                    newSubUserPassword,
+                    user.id,
+                    newPermissions
+                );
+            }
 
-        setSubUsers(updatedList);
-        handleCancelEdit();
-        await authService.updateUser(user.id, { subUsers: updatedList });
-        onUpdateUser({ ...user, subUsers: updatedList });
+            // Refresh list
+            const members = await authService.getTeamMembers(user.id);
+            setSubUsers(members.map(m => ({
+                id: m.id,
+                name: m.name,
+                email: m.email,
+                role: 'VIEWER',
+                permissions: m.activePermissions || DEFAULT_PERMISSIONS
+            })));
+
+            setSuccessMsg(editingSubUserId ? 'Membro atualizado!' : 'Membro criado com sucesso!');
+            handleCancelEdit();
+        } catch (error: any) {
+            setErrorMsg(error.message || 'Erro ao salvar membro da equipe.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleRemoveSubUser = async (id: string) => {
-        if (window.confirm("Tem certeza que deseja remover este usuário?")) {
-            const updatedList = subUsers.filter(u => u.id !== id);
-            setSubUsers(updatedList);
-            await authService.updateUser(user.id, { subUsers: updatedList });
-            onUpdateUser({ ...user, subUsers: updatedList });
+        if (window.confirm("Tem certeza que deseja remover este usuário permanentemente?")) {
+            setIsLoading(true);
+            try {
+                await authService.deleteTeamMember(id);
+                setSubUsers(prev => prev.filter(u => u.id !== id));
+                setSuccessMsg('Usuário removido.');
+            } catch (error: any) {
+                setErrorMsg('Erro ao remover usuário.');
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 

@@ -134,9 +134,9 @@ export default function App() {
       try {
         const user = await authService.getSessionUser();
         if (user) {
-
           setCurrentUser(user);
-          await fetchData(user.id);
+          const effectiveId = user.ownerId || user.id;
+          await fetchData(effectiveId);
           if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
             setActiveView("ADMIN_DASHBOARD");
           }
@@ -230,11 +230,11 @@ export default function App() {
 
       await dataService.updateTransaction(currentUser.id, updatedTx);
       // Balance is automatically recalculated by database trigger
-      await fetchData(currentUser.id);
+      await fetchData(currentUser.ownerId || currentUser.id);
     } else {
       await dataService.createTransaction(currentUser.id, payload);
       // Balance is automatically recalculated by database trigger
-      await fetchData(currentUser.id);
+      await fetchData(currentUser.ownerId || currentUser.id);
     }
     setIsModalOpen(false);
     setEditingTransaction(null);
@@ -268,7 +268,7 @@ export default function App() {
           setLoadingData(true);
           // Balance is automatically recalculated by database trigger
           await dataService.deleteTransaction(currentUser.id, id);
-          await fetchData(currentUser.id);
+          await fetchData(currentUser.ownerId || currentUser.id);
         } catch (error) {
           console.error("Erro ao excluir:", error);
           alert("Ocorreu um erro ao excluir o lançamento.");
@@ -285,7 +285,7 @@ export default function App() {
     try {
       setLoadingData(true);
       await dataService.resetUserData(currentUser.id, deleteCategories);
-      await fetchData(currentUser.id);
+      await fetchData(currentUser.ownerId || currentUser.id);
       alert("Dados zerados com sucesso!");
     } catch (error) {
       console.error("Erro ao zerar dados:", error);
@@ -366,7 +366,7 @@ export default function App() {
       }
     }
     // Balance is automatically recalculated by database trigger
-    await fetchData(currentUser.id);
+    await fetchData(currentUser.ownerId || currentUser.id);
   };
 
   const handleToggleStatus = async (id: string) => {
@@ -410,7 +410,7 @@ export default function App() {
     } catch (err) {
       console.error("Error toggling status:", err);
     } finally {
-      await fetchData(currentUser.id);
+      await fetchData(currentUser.ownerId || currentUser.id);
       setLoadingData(false);
     }
   };
@@ -475,7 +475,7 @@ export default function App() {
     if (!currentUser) return;
     const result = await dataService.createAccount(currentUser.id, data);
     if (result) {
-      await fetchData(currentUser.id);
+      await fetchData(currentUser.ownerId || currentUser.id);
     } else {
       alert(
         "Erro ao salvar conta. Verifique os logs do console para detalhes.",
@@ -487,33 +487,33 @@ export default function App() {
     if (!currentUser) return;
     const updatedAccount: Account = { ...data, id };
     await dataService.updateAccount(currentUser.id, updatedAccount);
-    await fetchData(currentUser.id);
+    await fetchData(currentUser.ownerId || currentUser.id);
   };
 
   const handleDeleteAccount = async (id: string) => {
     if (!currentUser) return;
     await dataService.deleteAccount(currentUser.id, id);
-    await fetchData(currentUser.id);
+    await fetchData(currentUser.ownerId || currentUser.id);
   };
 
   const handleAddCategory = async (data: Omit<Category, "id">) => {
     if (!currentUser) return;
     const newCategory: Category = { ...data, id: crypto.randomUUID() };
     await dataService.createCategory(currentUser.id, newCategory);
-    await fetchData(currentUser.id);
+    await fetchData(currentUser.ownerId || currentUser.id);
   };
 
   const handleEditCategory = async (id: string, data: Omit<Category, "id">) => {
     if (!currentUser) return;
     const updatedCategory: Category = { ...data, id };
     await dataService.updateCategory(currentUser.id, updatedCategory);
-    await fetchData(currentUser.id);
+    await fetchData(currentUser.ownerId || currentUser.id);
   };
 
   const handleDeleteCategory = async (id: string) => {
     if (!currentUser) return;
     await dataService.deleteCategory(currentUser.id, id);
-    await fetchData(currentUser.id);
+    await fetchData(currentUser.ownerId || currentUser.id);
   };
 
   useEffect(() => {
@@ -525,7 +525,7 @@ export default function App() {
 
   const handleLogin = async (user: User) => {
     setCurrentUser(user);
-    await fetchData(user.id);
+    await fetchData(user.ownerId || user.id);
     if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
       setActiveView("ADMIN_DASHBOARD");
     } else {
@@ -553,13 +553,13 @@ export default function App() {
   const handleAddPaymentMethod = async (name: string) => {
     if (!currentUser) return;
     await dataService.createPaymentMethod(currentUser.id, name);
-    await fetchData(currentUser.id);
+    await fetchData(currentUser.ownerId || currentUser.id);
   };
 
   const handleDeletePaymentMethod = async (id: string) => {
     if (!currentUser) return;
     await dataService.deletePaymentMethod(currentUser.id, id);
-    await fetchData(currentUser.id);
+    await fetchData(currentUser.ownerId || currentUser.id);
   };
 
   const handleNavClick = (view: ViewState) => {

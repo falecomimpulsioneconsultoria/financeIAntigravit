@@ -85,6 +85,7 @@ export interface User {
   document?: string; // CPF ou CNPJ
   photoUrl?: string; // Base64 or URL
   subUsers?: SubUser[];
+  ownerId?: string; // ID do dono da conta (se for membro de equipe)
 
   // Active Session Permissions (Injected during login)
   activePermissions?: UserPermissions;

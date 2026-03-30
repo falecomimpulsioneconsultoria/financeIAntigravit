@@ -44,7 +44,8 @@ export const authService = {
       accountType: profile.account_type,
       document: profile.document,
       subUsers: profile.sub_users || [],
-      activePermissions: FULL_ACCESS // Main user always has full access
+      ownerId: profile.owner_id,
+      activePermissions: profile.owner_id ? profile.permissions : FULL_ACCESS
     };
   },
 
@@ -155,7 +156,7 @@ export const authService = {
     await supabase.from('payment_methods').insert(paymentMethodsPayload);
 
     // We can return the user object directly.
-    const userObj = {
+    const userObj: User = {
       id: data.user.id,
       name,
       email,
@@ -172,6 +173,60 @@ export const authService = {
 
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userObj));
     return userObj;
+  },
+
+  createTeamMember: async (name: string, email: string, password: string, ownerId: string, perms: UserPermissions): Promise<void> => {
+    const { error } = await supabase.rpc('create_team_member', {
+      p_email: email,
+      p_password: password,
+      p_full_name: name,
+      p_owner_uuid: ownerId,
+      p_perms: perms
+    });
+
+    if (error) throw error;
+  },
+
+  getTeamMembers: async (ownerId: string): Promise<User[]> => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('owner_id', ownerId);
+
+    if (error) throw error;
+
+    return (data || []).map(profile => ({
+      id: profile.id,
+      name: profile.full_name || '',
+      email: profile.email || '',
+      role: 'USER' as const,
+      isActive: true,
+      createdAt: profile.created_at,
+      expirationDate: profile.expiration_date,
+      accountType: profile.account_type,
+      document: profile.document,
+      paymentStatus: 'PAID' as any,
+      subUsers: [],
+      ownerId: profile.owner_id,
+      activePermissions: profile.permissions
+    }));
+  },
+
+  updateTeamMember: async (memberId: string, perms: UserPermissions, name?: string): Promise<void> => {
+    const updates: any = { permissions: perms };
+    if (name) updates.full_name = name;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', memberId);
+
+    if (error) throw error;
+  },
+
+  deleteTeamMember: async (memberId: string): Promise<void> => {
+    const { error } = await supabase.rpc('delete_team_member', { p_member_id: memberId });
+    if (error) throw error;
   },
 
   login: async (email: string, password: string): Promise<User> => {
@@ -208,7 +263,8 @@ export const authService = {
       accountType: profile.account_type,
       document: profile.document,
       subUsers: profile.sub_users || [],
-      activePermissions: FULL_ACCESS
+      ownerId: profile.owner_id,
+      activePermissions: profile.owner_id ? profile.permissions : FULL_ACCESS
     };
 
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userObj));
