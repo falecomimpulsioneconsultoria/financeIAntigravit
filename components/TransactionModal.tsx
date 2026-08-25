@@ -90,6 +90,7 @@ export function TransactionModal({
     // Tags & Receipt
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState('');
+    const [tagFocused, setTagFocused] = useState(false);
     const [receiptFile, setReceiptFile] = useState<File | null>(null);
     const [isEditing, setIsEditing] = useState(!initialData);
     const [showReceiptPreview, setShowReceiptPreview] = useState(false);
@@ -708,6 +709,8 @@ export function TransactionModal({
                                     type="text"
                                     value={tagInput}
                                     onChange={e => setTagInput(e.target.value)}
+                                    onFocus={() => setTagFocused(true)}
+                                    onBlur={() => setTimeout(() => setTagFocused(false), 150)}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ',') {
                                             e.preventDefault();
@@ -722,32 +725,46 @@ export function TransactionModal({
                             </div>
 
                             {/* Autocomplete Suggestions */}
-                            {tagInput.trim().length > 0 && (
-                                <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg z-30 max-h-40 overflow-y-auto w-full">
+                            {tagFocused && (
+                                <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto w-full">
                                     {availableTags
                                         .filter(t => t.toLowerCase().includes(tagInput.toLowerCase()) && !tags.includes(t))
-                                        .map(suggestion => (
-                                            <button
-                                                key={suggestion}
-                                                type="button"
-                                                onClick={() => {
-                                                    setTags([...tags, suggestion]);
-                                                    setTagInput('');
-                                                }}
-                                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-700 font-medium transition-colors flex items-center gap-2"
-                                            >
-                                                <span className="text-gray-400">#</span> {suggestion}
-                                            </button>
-                                        ))}
+                                        .length > 0 && (
+                                        <>
+                                            {tagInput.trim().length === 0 && (
+                                                <p className="px-4 pt-2 pb-1 text-xs font-bold text-gray-400 uppercase tracking-widest">Tags existentes</p>
+                                            )}
+                                            {availableTags
+                                                .filter(t => t.toLowerCase().includes(tagInput.toLowerCase()) && !tags.includes(t))
+                                                .map(suggestion => (
+                                                    <button
+                                                        key={suggestion}
+                                                        type="button"
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                        onClick={() => {
+                                                            setTags([...tags, suggestion]);
+                                                            setTagInput('');
+                                                        }}
+                                                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-700 font-medium transition-colors flex items-center gap-2"
+                                                    >
+                                                        <span className="text-gray-400">#</span> {suggestion}
+                                                    </button>
+                                                ))}
+                                        </>
+                                    )}
                                     {/* Create new option */}
-                                    {!availableTags.some(t => t.toLowerCase() === tagInput.trim().toLowerCase()) && !tags.includes(tagInput.trim()) && (
+                                    {tagInput.trim().length > 0 && !availableTags.some(t => t.toLowerCase() === tagInput.trim().toLowerCase()) && !tags.includes(tagInput.trim()) && (
                                         <button
                                             type="button"
+                                            onMouseDown={(e) => e.preventDefault()}
                                             onClick={handleAddTag}
                                             className="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 text-blue-600 font-bold transition-colors border-t border-gray-50"
                                         >
                                             Criar "{tagInput}"
                                         </button>
+                                    )}
+                                    {availableTags.filter(t => !tags.includes(t)).length === 0 && tagInput.trim().length === 0 && (
+                                        <p className="px-4 py-3 text-sm text-gray-400 text-center">Nenhuma tag cadastrada ainda.</p>
                                     )}
                                 </div>
                             )}

@@ -567,12 +567,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     "ALL" | "PAID" | "PENDING" | "PARTIAL"
   >("ALL");
   const [filterCategory, setFilterCategory] = useState<string>("ALL");
+  const [filterAccount, setFilterAccount] = useState<string>("ALL");
   const [categorySearch, setCategorySearch] = useState("");
   const [ignoreDate, setIgnoreDate] = useState(false);
   const [showCustomRange, setShowCustomRange] = useState(false);
   const [isOpenType, setIsOpenType] = useState(false);
   const [isOpenStatus, setIsOpenStatus] = useState(false);
   const [isOpenCategory, setIsOpenCategory] = useState(false);
+  const [isOpenAccount, setIsOpenAccount] = useState(false);
 
   // Efeito para fechar dropdowns ao clicar fora
   useEffect(() => {
@@ -592,6 +594,12 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       ) {
         setIsOpenCategory(false);
         setCategorySearch("");
+      }
+      if (
+        accountRef.current &&
+        !accountRef.current.contains(event.target as Node)
+      ) {
+        setIsOpenAccount(false);
       }
     };
 
@@ -622,6 +630,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const typeRef = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
   const categoryRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
 
   const [settleAmount, setSettleAmount] = useState("");
   const [settleDate, setSettleDate] = useState(
@@ -696,6 +705,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({
 
       // Filtro de Categoria
       if (filterCategory !== "ALL" && t.categoryId !== filterCategory)
+        return false;
+
+      // Filtro de Conta
+      if (filterAccount !== "ALL" && t.accountId !== filterAccount)
         return false;
 
       // Busca Texto
@@ -955,6 +968,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         setIsOpenType(!isOpenType);
                         setIsOpenStatus(false);
                         setIsOpenCategory(false);
+                        setIsOpenAccount(false);
                       }}
                       className="h-[42px] flex items-center justify-between gap-3 px-4 bg-white border border-gray-200 text-gray-700 text-[10px] font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm min-w-[155px] outline-none focus:ring-2 focus:ring-blue-500/20"
                     >
@@ -1044,6 +1058,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         setIsOpenCategory(!isOpenCategory);
                         setIsOpenType(false);
                         setIsOpenStatus(false);
+                        setIsOpenAccount(false);
                       }}
                       className="h-[42px] flex items-center justify-between gap-3 px-4 bg-white border border-gray-200 text-gray-700 text-[10px] font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm min-w-[165px] outline-none focus:ring-2 focus:ring-blue-500/20"
                     >
@@ -1161,6 +1176,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         setIsOpenStatus(!isOpenStatus);
                         setIsOpenType(false);
                         setIsOpenCategory(false);
+                        setIsOpenAccount(false);
                       }}
                       className="h-[42px] flex items-center justify-between gap-3 px-4 bg-white border border-gray-200 text-gray-700 text-[10px] font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm min-w-[155px] outline-none focus:ring-2 focus:ring-blue-500/20"
                     >
@@ -1242,6 +1258,66 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                               </svg>
                             </span>
                             {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Dropdown de Conta */}
+                  <div className="relative" ref={accountRef}>
+                    <button
+                      onClick={() => {
+                        setIsOpenAccount(!isOpenAccount);
+                        setIsOpenType(false);
+                        setIsOpenCategory(false);
+                        setIsOpenStatus(false);
+                      }}
+                      className="h-[42px] flex items-center justify-between gap-3 px-4 bg-white border border-gray-200 text-gray-700 text-[10px] font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm min-w-[155px] outline-none focus:ring-2 focus:ring-blue-500/20"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`flex items-center justify-center w-5 h-5 rounded-lg ${filterAccount === "ALL" ? "bg-gray-100 text-gray-400" : "bg-indigo-100 text-indigo-600"}`}>
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                          </svg>
+                        </span>
+                        <span className="uppercase tracking-wide truncate max-w-[80px]">
+                          {filterAccount === "ALL" ? "Contas" : accounts.find(a => a.id === filterAccount)?.name || "Conta"}
+                        </span>
+                      </div>
+                      <svg className={`w-3 h-3 text-gray-400 transition-transform ${isOpenAccount ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {isOpenAccount && (
+                      <div className="absolute top-full mt-2 left-0 w-full min-w-[200px] bg-white border border-gray-100 rounded-2xl shadow-2xl p-2 z-[110] animate-in fade-in slide-in-from-top-2 duration-200 max-h-64 overflow-y-auto">
+                        <button
+                          onClick={() => {
+                            setFilterAccount("ALL");
+                            setIsOpenAccount(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-wide text-left ${
+                            filterAccount === "ALL" ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          Todas as Contas
+                        </button>
+                        
+                        <div className="my-1 border-t border-gray-100"></div>
+                        
+                        {accounts.map(acc => (
+                          <button
+                            key={acc.id}
+                            onClick={() => {
+                              setFilterAccount(acc.id);
+                              setIsOpenAccount(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-wide text-left ${
+                              filterAccount === acc.id ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"
+                            }`}
+                          >
+                            <span className="truncate">{acc.name}</span>
                           </button>
                         ))}
                       </div>
