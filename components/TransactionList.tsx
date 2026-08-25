@@ -1292,33 +1292,35 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                     </button>
 
                     {isOpenAccount && (
-                      <div className="absolute top-full mt-2 left-0 w-full min-w-[200px] bg-white border border-gray-100 rounded-2xl shadow-2xl p-2 z-[110] animate-in fade-in slide-in-from-top-2 duration-200 max-h-64 overflow-y-auto">
-                        <button
-                          onClick={() => {
-                            setFilterAccount("ALL");
-                            setIsOpenAccount(false);
-                          }}
-                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-wide text-left ${
-                            filterAccount === "ALL" ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"
-                          }`}
-                        >
-                          Todas as Contas
-                        </button>
-                        
-                        {accounts.map(acc => (
+                      <div className="absolute top-full mt-2 left-0 w-full min-w-[200px] bg-white border border-gray-100 rounded-2xl shadow-2xl p-2 z-[110] animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="max-h-[300px] overflow-y-auto custom-scrollbar space-y-0.5">
                           <button
-                            key={acc.id}
                             onClick={() => {
-                              setFilterAccount(acc.id);
+                              setFilterAccount("ALL");
                               setIsOpenAccount(false);
                             }}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-wide text-left ${
-                              filterAccount === acc.id ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"
+                              filterAccount === "ALL" ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"
                             }`}
                           >
-                            <span className="truncate">{acc.name}</span>
+                            Todas as Contas
                           </button>
-                        ))}
+                          
+                          {accounts.map(acc => (
+                            <button
+                              key={acc.id}
+                              onClick={() => {
+                                setFilterAccount(acc.id);
+                                setIsOpenAccount(false);
+                              }}
+                              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-wide text-left ${
+                                filterAccount === acc.id ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"
+                              }`}
+                            >
+                              <span className="truncate">{acc.name}</span>
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
