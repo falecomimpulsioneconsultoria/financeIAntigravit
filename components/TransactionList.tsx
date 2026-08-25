@@ -759,6 +759,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     filterType,
     filterStatus,
     filterCategory,
+    filterAccount,
     ignoreDate,
     searchQuery,
   ]);
