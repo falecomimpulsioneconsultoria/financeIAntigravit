@@ -1274,7 +1274,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         setIsOpenCategory(false);
                         setIsOpenStatus(false);
                       }}
-                      className="h-[42px] flex items-center justify-between gap-3 px-4 bg-white border border-gray-200 text-gray-700 text-[10px] font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm min-w-[155px] outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className={`h-[42px] flex items-center justify-between gap-3 px-4 bg-white border ${filterAccount !== "ALL" ? "border-indigo-200 text-indigo-700" : "border-gray-200 text-gray-700"} text-[10px] font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm min-w-[155px] outline-none focus:ring-2 focus:ring-blue-500/20`}
                     >
                       <div className="flex items-center gap-2">
                         <span className={`flex items-center justify-center w-5 h-5 rounded-lg ${filterAccount === "ALL" ? "bg-gray-100 text-gray-400" : "bg-indigo-100 text-indigo-600"}`}>
@@ -1304,8 +1304,6 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         >
                           Todas as Contas
                         </button>
-                        
-                        <div className="my-1 border-t border-gray-100"></div>
                         
                         {accounts.map(acc => (
                           <button
