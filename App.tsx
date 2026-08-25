@@ -5,6 +5,7 @@ import { DashboardV2 } from "./components/DashboardV2";
 import { TransactionModal } from "./components/TransactionModal";
 import { TransactionList } from "./components/TransactionList";
 import { CategoryManager } from "./components/CategoryManager";
+import { TagManager } from "./components/TagManager";
 import { AccountList } from "./components/AccountList";
 import { Reports } from "./components/Reports";
 import { Settings } from "./components/Settings";
@@ -66,7 +67,8 @@ type ViewState =
   | "ADMIN_ACCOUNTS"
   | "ADMIN_PLANS"
   | "ADMIN_PAYMENTS"
-  | "ADMIN_SETTINGS";
+  | "ADMIN_SETTINGS"
+  | "TAGS";
 
 interface TransactionFormData extends Omit<Transaction, "id"> {
   recurrenceCount?: number;
@@ -562,6 +564,18 @@ export default function App() {
     await fetchData(currentUser.ownerId || currentUser.id);
   };
 
+  const handleRenameTag = async (oldTag: string, newTag: string) => {
+    if (!currentUser) return;
+    await dataService.renameTag(currentUser.id, oldTag, newTag);
+    await fetchData(currentUser.ownerId || currentUser.id);
+  };
+
+  const handleDeleteTag = async (tag: string) => {
+    if (!currentUser) return;
+    await dataService.deleteTag(currentUser.id, tag);
+    await fetchData(currentUser.ownerId || currentUser.id);
+  };
+
   const handleNavClick = (view: ViewState) => {
     setActiveView(view);
     setIsMobileMenuOpen(false);
@@ -653,6 +667,16 @@ export default function App() {
               onAdd={handleAddCategory}
               onEdit={handleEditCategory}
               onDelete={handleDeleteCategory}
+            />
+          </div>
+        );
+      case "TAGS":
+        return (
+          <div className="w-full">
+            <TagManager
+              availableTags={availableTags}
+              onRenameTag={handleRenameTag}
+              onDeleteTag={handleDeleteTag}
             />
           </div>
         );
@@ -947,6 +971,11 @@ export default function App() {
                   view: "CATEGORIES",
                   label: "Categorias",
                   icon: "M7 7h.01M7 11h.01M7 15h.01M11 7h8M11 11h8M11 15h8",
+                },
+                {
+                  view: "TAGS",
+                  label: "Tags",
+                  icon: "M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z",
                 },
                 ...(permissions.viewReports
                   ? [

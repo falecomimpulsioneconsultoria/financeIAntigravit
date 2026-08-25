@@ -44,6 +44,9 @@ export const dataService = {
       paymentMethodId: t.payment_method_id,
       status: t.status,
       observation: t.observation,
+      tags: t.tags,
+      receiptUrl: t.receipt_url,
+      groupId: t.group_id,
       isRecurring: t.is_recurring,
       recurringType: t.recurring_type,
       installmentCurrent: t.installment_current,
@@ -148,6 +151,34 @@ export const dataService = {
       return null;
     }
     return transaction;
+  },
+
+  renameTag: async (userId: string, oldTag: string, newTag: string): Promise<void> => {
+    checkReadOnly();
+    // Select transactions that contain the old tag
+    const { data, error } = await supabase.from('transactions').select('id, tags').eq('user_id', userId).contains('tags', [oldTag]);
+    if (error || !data) return;
+    
+    // Process sequentially (could use Promise.all for speed, but sequentially is safer for now)
+    for (const t of data) {
+        if (!t.tags) continue;
+        const updatedTags = t.tags.map((tag: string) => tag.toLowerCase() === oldTag.toLowerCase() ? newTag : tag);
+        // avoid duplicates if newTag was already there
+        const uniqueTags = Array.from(new Set(updatedTags));
+        await supabase.from('transactions').update({ tags: uniqueTags }).eq('id', t.id);
+    }
+  },
+
+  deleteTag: async (userId: string, tagToDelete: string): Promise<void> => {
+    checkReadOnly();
+    const { data, error } = await supabase.from('transactions').select('id, tags').eq('user_id', userId).contains('tags', [tagToDelete]);
+    if (error || !data) return;
+    
+    for (const t of data) {
+        if (!t.tags) continue;
+        const updatedTags = t.tags.filter((tag: string) => tag.toLowerCase() !== tagToDelete.toLowerCase());
+        await supabase.from('transactions').update({ tags: updatedTags }).eq('id', t.id);
+    }
   },
 
   updateTransaction: async (userId: string, transaction: Transaction): Promise<void> => {
