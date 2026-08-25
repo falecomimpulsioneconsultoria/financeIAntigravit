@@ -148,8 +148,14 @@ export function TransactionModal({
 
     const addTag = (tag: string) => {
         const trimmedTag = tag.trim();
-        if (trimmedTag && !tags.includes(trimmedTag)) {
-            setTags([...tags, trimmedTag]);
+        if (!trimmedTag) return;
+        
+        // Find existing tag ignoring case to reuse and avoid duplicates
+        const existingGlobal = availableTags.find(t => t.toLowerCase() === trimmedTag.toLowerCase());
+        const finalTag = existingGlobal || trimmedTag;
+
+        if (!tags.some(t => t.toLowerCase() === finalTag.toLowerCase())) {
+            setTags([...tags, finalTag]);
         }
         setTagInput('');
     };
@@ -728,14 +734,14 @@ export function TransactionModal({
                             {tagFocused && (
                                 <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto w-full">
                                     {availableTags
-                                        .filter(t => t.toLowerCase().includes(tagInput.toLowerCase()) && !tags.includes(t))
+                                        .filter(t => t.toLowerCase().includes(tagInput.toLowerCase()) && !tags.some(tag => tag.toLowerCase() === t.toLowerCase()))
                                         .length > 0 && (
                                         <>
                                             {tagInput.trim().length === 0 && (
                                                 <p className="px-4 pt-2 pb-1 text-xs font-bold text-gray-400 uppercase tracking-widest">Tags existentes</p>
                                             )}
                                             {availableTags
-                                                .filter(t => t.toLowerCase().includes(tagInput.toLowerCase()) && !tags.includes(t))
+                                                .filter(t => t.toLowerCase().includes(tagInput.toLowerCase()) && !tags.some(tag => tag.toLowerCase() === t.toLowerCase()))
                                                 .map(suggestion => (
                                                     <button
                                                         key={suggestion}
@@ -753,7 +759,7 @@ export function TransactionModal({
                                         </>
                                     )}
                                     {/* Create new option */}
-                                    {tagInput.trim().length > 0 && !availableTags.some(t => t.toLowerCase() === tagInput.trim().toLowerCase()) && !tags.includes(tagInput.trim()) && (
+                                    {tagInput.trim().length > 0 && !availableTags.some(t => t.toLowerCase() === tagInput.trim().toLowerCase()) && !tags.some(tag => tag.toLowerCase() === tagInput.trim().toLowerCase()) && (
                                         <button
                                             type="button"
                                             onMouseDown={(e) => e.preventDefault()}
@@ -763,7 +769,7 @@ export function TransactionModal({
                                             Criar "{tagInput}"
                                         </button>
                                     )}
-                                    {availableTags.filter(t => !tags.includes(t)).length === 0 && tagInput.trim().length === 0 && (
+                                    {availableTags.filter(t => !tags.some(tag => tag.toLowerCase() === t.toLowerCase())).length === 0 && tagInput.trim().length === 0 && (
                                         <p className="px-4 py-3 text-sm text-gray-400 text-center">Nenhuma tag cadastrada ainda.</p>
                                     )}
                                 </div>

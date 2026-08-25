@@ -568,6 +568,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   >("ALL");
   const [filterCategory, setFilterCategory] = useState<string>("ALL");
   const [filterAccount, setFilterAccount] = useState<string>("ALL");
+  const [filterTag, setFilterTag] = useState<string>("ALL");
   const [categorySearch, setCategorySearch] = useState("");
   const [ignoreDate, setIgnoreDate] = useState(false);
   const [showCustomRange, setShowCustomRange] = useState(false);
@@ -575,6 +576,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const [isOpenStatus, setIsOpenStatus] = useState(false);
   const [isOpenCategory, setIsOpenCategory] = useState(false);
   const [isOpenAccount, setIsOpenAccount] = useState(false);
+  const [isOpenTag, setIsOpenTag] = useState(false);
 
   // Efeito para fechar dropdowns ao clicar fora
   useEffect(() => {
@@ -600,6 +602,12 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         !accountRef.current.contains(event.target as Node)
       ) {
         setIsOpenAccount(false);
+      }
+      if (
+        tagRef.current &&
+        !tagRef.current.contains(event.target as Node)
+      ) {
+        setIsOpenTag(false);
       }
     };
 
@@ -631,6 +639,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const statusRef = useRef<HTMLDivElement>(null);
   const categoryRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
+  const tagRef = useRef<HTMLDivElement>(null);
 
   const [settleAmount, setSettleAmount] = useState("");
   const [settleDate, setSettleDate] = useState(
@@ -711,6 +720,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       if (filterAccount !== "ALL" && t.accountId !== filterAccount)
         return false;
 
+      // Filtro de Tag
+      if (filterTag !== "ALL" && (!t.tags || !t.tags.includes(filterTag)))
+        return false;
+
       // Busca Texto
       if (
         searchQuery &&
@@ -760,6 +773,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     filterStatus,
     filterCategory,
     filterAccount,
+    filterTag,
     ignoreDate,
     searchQuery,
   ]);
@@ -970,6 +984,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         setIsOpenStatus(false);
                         setIsOpenCategory(false);
                         setIsOpenAccount(false);
+                        setIsOpenTag(false);
                       }}
                       className="h-[42px] flex items-center justify-between gap-3 px-4 bg-white border border-gray-200 text-gray-700 text-[10px] font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm min-w-[155px] outline-none focus:ring-2 focus:ring-blue-500/20"
                     >
@@ -1060,6 +1075,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         setIsOpenType(false);
                         setIsOpenStatus(false);
                         setIsOpenAccount(false);
+                        setIsOpenTag(false);
                       }}
                       className="h-[42px] flex items-center justify-between gap-3 px-4 bg-white border border-gray-200 text-gray-700 text-[10px] font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm min-w-[165px] outline-none focus:ring-2 focus:ring-blue-500/20"
                     >
@@ -1178,6 +1194,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         setIsOpenType(false);
                         setIsOpenCategory(false);
                         setIsOpenAccount(false);
+                        setIsOpenTag(false);
                       }}
                       className="h-[42px] flex items-center justify-between gap-3 px-4 bg-white border border-gray-200 text-gray-700 text-[10px] font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm min-w-[155px] outline-none focus:ring-2 focus:ring-blue-500/20"
                     >
@@ -1273,6 +1290,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         setIsOpenType(false);
                         setIsOpenCategory(false);
                         setIsOpenStatus(false);
+                        setIsOpenTag(false);
                       }}
                       className={`h-[42px] flex items-center justify-between gap-3 px-4 bg-white border ${filterAccount !== "ALL" ? "border-indigo-200 text-indigo-700" : "border-gray-200 text-gray-700"} text-[10px] font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm min-w-[155px] outline-none focus:ring-2 focus:ring-blue-500/20`}
                     >
@@ -1318,6 +1336,67 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                               }`}
                             >
                               <span className="truncate">{acc.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Dropdown de Tag */}
+                  <div className="relative" ref={tagRef}>
+                    <button
+                      onClick={() => {
+                        setIsOpenTag(!isOpenTag);
+                        setIsOpenType(false);
+                        setIsOpenCategory(false);
+                        setIsOpenStatus(false);
+                        setIsOpenAccount(false);
+                      }}
+                      className={`h-[42px] flex items-center justify-between gap-3 px-4 bg-white border ${filterTag !== "ALL" ? "border-indigo-200 text-indigo-700" : "border-gray-200 text-gray-700"} text-[10px] font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm min-w-[155px] outline-none focus:ring-2 focus:ring-blue-500/20`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`flex items-center justify-center w-5 h-5 rounded-lg ${filterTag === "ALL" ? "bg-gray-100 text-gray-400" : "bg-indigo-100 text-indigo-600"}`}>
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                          </svg>
+                        </span>
+                        <span className="uppercase tracking-wide truncate max-w-[80px]">
+                          {filterTag === "ALL" ? "Tags" : filterTag}
+                        </span>
+                      </div>
+                      <svg className={`w-3 h-3 text-gray-400 transition-transform ${isOpenTag ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {isOpenTag && (
+                      <div className="absolute top-full mt-2 left-0 w-full min-w-[200px] bg-white border border-gray-100 rounded-2xl shadow-2xl p-2 z-[110] animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="max-h-[300px] overflow-y-auto custom-scrollbar space-y-0.5">
+                          <button
+                            onClick={() => {
+                              setFilterTag("ALL");
+                              setIsOpenTag(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-wide text-left ${
+                              filterTag === "ALL" ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"
+                            }`}
+                          >
+                            Todas as Tags
+                          </button>
+                          
+                          {availableTags.map(tag => (
+                            <button
+                              key={tag}
+                              onClick={() => {
+                                setFilterTag(tag);
+                                setIsOpenTag(false);
+                              }}
+                              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-wide text-left ${
+                                filterTag === tag ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"
+                              }`}
+                            >
+                              <span className="truncate">#{tag}</span>
                             </button>
                           ))}
                         </div>
