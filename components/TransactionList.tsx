@@ -949,7 +949,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         </div>
 
         {/* TABELA COM SCROLL */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100/50 overflow-hidden flex flex-col">
+        <div className="flex-1 bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100/50 overflow-hidden flex flex-col">
           {/* ÁREA DE FILTROS EXPANSÍVEL */}
           <div
             className={`shrink-0 transition-all duration-300 ease-in-out border-b border-gray-100 bg-gradient-to-r from-blue-50/50 to-white ${
