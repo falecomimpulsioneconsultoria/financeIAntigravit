@@ -52,6 +52,7 @@ const TransactionRow: React.FC<{
   onSettle: (t: Transaction, balance: number) => void;
   onToggleStatus: (id: string) => void;
   highlightedId?: string;
+  visibleColumns: Record<string, boolean>;
 }> = ({
   tx,
   isChild = false,
@@ -67,6 +68,7 @@ const TransactionRow: React.FC<{
   onSettle,
   onToggleStatus,
   highlightedId,
+  visibleColumns,
 }) => {
   const account = accounts.find((a) => a.id === tx.accountId);
   const category = categories.find((c) => c.id === tx.categoryId);
@@ -129,6 +131,7 @@ const TransactionRow: React.FC<{
         onClick={() => onEdit(tx)}
       >
         {/* DATA */}
+        {visibleColumns.vencimento && (
         <td
           className={`px-4 py-2 whitespace-nowrap align-middle text-center w-20 ${
             isChild
@@ -144,8 +147,10 @@ const TransactionRow: React.FC<{
             {formattedDate}
           </span>
         </td>
+        )}
 
         {/* TIPO */}
+        {visibleColumns.tipo && (
         <td className="px-4 py-2 align-middle whitespace-nowrap text-center">
           <span
             className={`text-[10px] font-semibold uppercase ${typeColor} inline-flex items-center justify-center w-8 h-8 rounded-full bg-opacity-10 ${
@@ -202,8 +207,10 @@ const TransactionRow: React.FC<{
             )}
           </span>
         </td>
+        )}
 
         {/* CATEGORIA */}
+        {visibleColumns.categoria && (
         <td className="px-4 py-2 align-middle whitespace-nowrap">
           {!isChild && category ? (
             <span className="text-xs text-gray-600">{category.name}</span>
@@ -215,8 +222,10 @@ const TransactionRow: React.FC<{
             <span className="text-gray-300">-</span>
           )}
         </td>
+        )}
 
         {/* DESCRIÇÃO */}
+        {visibleColumns.descricao && (
         <td className="px-4 py-2 align-middle">
           <div className="flex items-center gap-2">
             <span
@@ -266,15 +275,19 @@ const TransactionRow: React.FC<{
             )}
           </div>
         </td>
+        )}
 
         {/* CONTA */}
+        {visibleColumns.conta && (
         <td className="px-4 py-2 align-middle whitespace-nowrap">
           <span className="text-xs text-gray-500 uppercase">
             {account?.name || "-"}
           </span>
         </td>
+        )}
 
         {/* VALORES */}
+        {visibleColumns.previsto && (
         <td className="px-4 py-2 text-right align-middle whitespace-nowrap">
           {!isChild ? (
             <span className={`text-sm font-semibold ${typeColor}`}>
@@ -284,11 +297,15 @@ const TransactionRow: React.FC<{
             <span className="text-gray-300">-</span>
           )}
         </td>
+        )}
+        {visibleColumns.realizado && (
         <td className="px-4 py-2 text-right align-middle whitespace-nowrap">
           <span className="text-sm text-gray-600">
             {isChild ? formatBRL(tx.amount) : formatBRL(effectiveRealized)}
           </span>
         </td>
+        )}
+        {visibleColumns.saldo && (
         <td className="px-4 py-2 text-right align-middle whitespace-nowrap">
           {!isChild ? (
             <span
@@ -302,8 +319,10 @@ const TransactionRow: React.FC<{
             <span className="text-gray-300">-</span>
           )}
         </td>
+        )}
 
         {/* STATUS */}
+        {visibleColumns.status && (
         <td className="px-4 py-2 align-middle text-center whitespace-nowrap">
           <div className="flex justify-center">
             <span
@@ -386,8 +405,10 @@ const TransactionRow: React.FC<{
             </span>
           </div>
         </td>
+        )}
 
         {/* AÇÕES */}
+        {visibleColumns.acoes && (
         <td className="px-4 py-2 text-right align-middle whitespace-nowrap">
           <div className="inline-flex items-center gap-1">
             {!isFullyPaid && (
@@ -487,6 +508,7 @@ const TransactionRow: React.FC<{
             </button>
           </div>
         </td>
+        )}
       </tr>
       {isExpanded &&
         children.map((child, idx) => (
@@ -505,6 +527,7 @@ const TransactionRow: React.FC<{
             onEdit={onEdit}
             onSettle={onSettle}
             onToggleStatus={onToggleStatus}
+            visibleColumns={visibleColumns}
           />
         ))}
     </React.Fragment>
@@ -636,6 +659,31 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const [transactionToSettle, setTransactionToSettle] =
     useState<Transaction | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const [visibleColumns, setVisibleColumns] = useState({
+    vencimento: true,
+    tipo: true,
+    categoria: true,
+    descricao: true,
+    conta: true,
+    previsto: true,
+    realizado: true,
+    saldo: true,
+    status: true,
+    acoes: true,
+  });
+  const [showColumnMenu, setShowColumnMenu] = useState(false);
+  const columnMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (columnMenuRef.current && !columnMenuRef.current.contains(event.target as Node)) {
+        setShowColumnMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const typeRef = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
@@ -1485,6 +1533,47 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                   className="h-[42px] pl-10 pr-4 bg-white border border-gray-200 rounded-xl text-xs w-full focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 outline-none transition-all shadow-sm"
                 />
               </div>
+
+              {/* Colunas */}
+              <div className="relative" ref={columnMenuRef}>
+                <button
+                  onClick={() => setShowColumnMenu(!showColumnMenu)}
+                  className="h-[42px] px-3 flex items-center justify-center bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all shadow-sm text-gray-500"
+                  title="Colunas Visíveis"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                  </svg>
+                </button>
+
+                {showColumnMenu && (
+                  <div className="absolute right-0 top-[50px] w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-2 py-3 max-h-[400px] overflow-y-auto">
+                    <h4 className="text-xs font-bold text-gray-500 uppercase px-3 mb-2">Colunas</h4>
+                    {[
+                      { id: "vencimento", label: "Vencimento" },
+                      { id: "tipo", label: "Tipo" },
+                      { id: "categoria", label: "Categoria" },
+                      { id: "descricao", label: "Descrição" },
+                      { id: "conta", label: "Conta" },
+                      { id: "previsto", label: "Previsto" },
+                      { id: "realizado", label: "Realizado" },
+                      { id: "saldo", label: "Saldo" },
+                      { id: "status", label: "Status" },
+                      { id: "acoes", label: "Ações" }
+                    ].map(col => (
+                      <label key={col.id} className="flex items-center px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={visibleColumns[col.id as keyof typeof visibleColumns]}
+                          onChange={(e) => setVisibleColumns(prev => ({ ...prev, [col.id]: e.target.checked }))}
+                          className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="ml-3 text-sm font-medium text-gray-700">{col.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -1493,23 +1582,23 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             <table className="w-full text-left text-sm text-gray-600">
               <thead className="bg-gray-50 text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 sticky top-0 z-10">
                 <tr className="border-b border-gray-100 bg-gray-50 backdrop-blur-sm">
-                  <th className="px-4 py-2 text-center w-20">Vencimento</th>
-                  <th className="px-4 py-2 text-center">Tipo</th>
-                  <th className="px-4 py-2 text-left">Categoria</th>
-                  <th className="px-4 py-2 text-left">Descrição</th>
-                  <th className="px-4 py-2 text-left">Conta</th>
-                  <th className="px-4 py-2 text-right">Previsto</th>
-                  <th className="px-4 py-2 text-right">Realizado</th>
-                  <th className="px-4 py-2 text-right">Saldo</th>
-                  <th className="px-4 py-2 text-center">Status</th>
-                  <th className="px-4 py-2 text-right">Ações</th>
+                  {visibleColumns.vencimento && <th className="px-4 py-2 text-center w-20">Vencimento</th>}
+                  {visibleColumns.tipo && <th className="px-4 py-2 text-center">Tipo</th>}
+                  {visibleColumns.categoria && <th className="px-4 py-2 text-left">Categoria</th>}
+                  {visibleColumns.descricao && <th className="px-4 py-2 text-left">Descrição</th>}
+                  {visibleColumns.conta && <th className="px-4 py-2 text-left">Conta</th>}
+                  {visibleColumns.previsto && <th className="px-4 py-2 text-right">Previsto</th>}
+                  {visibleColumns.realizado && <th className="px-4 py-2 text-right">Realizado</th>}
+                  {visibleColumns.saldo && <th className="px-4 py-2 text-right">Saldo</th>}
+                  {visibleColumns.status && <th className="px-4 py-2 text-center">Status</th>}
+                  {visibleColumns.acoes && <th className="px-4 py-2 text-right">Ações</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {roots.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={10}
+                      colSpan={Object.values(visibleColumns).filter(Boolean).length}
                       className="text-center py-32 text-gray-400 font-medium italic"
                     >
                       Nenhum lançamento no período.

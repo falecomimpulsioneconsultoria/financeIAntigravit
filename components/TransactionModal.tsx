@@ -524,7 +524,7 @@ export function TransactionModal({
                             {/* DESCRIPTION */}
                             {/* DESCRIPTION */}
                             <div>
-                                <input required type="text" value={description} onChange={e => setDescription(e.target.value)} className="w-full px-4 py-3 bg-gray-50/50 border-none rounded-xl font-medium focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder-gray-300 text-lg" placeholder="Descrição (ex: Mercado, Salário)" />
+                                <input type="text" value={description} onChange={e => setDescription(e.target.value)} className="w-full px-4 py-3 bg-gray-50/50 border-none rounded-xl font-medium focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder-gray-300 text-lg" placeholder="Descrição (ex: Mercado, Salário)" />
                             </div>
 
                             {/* PESSOA / FORNECEDOR */}
