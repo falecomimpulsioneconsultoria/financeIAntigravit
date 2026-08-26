@@ -1631,6 +1631,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         setSettleModalOpen(true);
                       }}
                       highlightedId={initialHighlightedId}
+                      visibleColumns={visibleColumns}
                     />
                   ))
                 )}
