@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Transaction, Account, Category, TransactionType, RecurrenceType, PaymentMethod } from '../types';
+import { Transaction, Account, Category, TransactionType, RecurrenceType, PaymentMethod, Contact } from '../types';
 import { Button } from './ui/Button';
 import { NumericFormat } from 'react-number-format';
+import { ContactAutocomplete } from './contacts/ContactAutocomplete';
+import { ContactFormModal } from './contacts/ContactFormModal';
 
 interface TransactionFormData extends Omit<Transaction, 'id'> {
     recurrenceCount?: number;
@@ -14,11 +16,13 @@ interface TransactionModalProps {
     accounts: Account[];
     categories: Category[];
     paymentMethods?: PaymentMethod[];
+    contacts?: Contact[];
     initialData?: Transaction | null;
     initialType?: TransactionType;
     currency?: string;
     availableTags?: string[];
     onSubmit: (data: TransactionFormData) => void;
+    onCreateContact?: (name: string, data: Omit<Contact, 'id' | 'userId' | 'createdAt'>) => Promise<Contact | null>;
 }
 
 export function TransactionModal({
@@ -27,11 +31,13 @@ export function TransactionModal({
     accounts,
     categories,
     paymentMethods = [],
+    contacts = [],
     initialData,
     initialType = 'EXPENSE',
     currency = 'BRL',
     availableTags = [],
     onSubmit,
+    onCreateContact,
 }: TransactionModalProps) {
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
@@ -97,6 +103,11 @@ export function TransactionModal({
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const [categorySearch, setCategorySearch] = useState('');
 
+    // Contact state
+    const [contactId, setContactId] = useState('');
+    const [showInlineContactForm, setShowInlineContactForm] = useState(false);
+    const [inlineContactPrefill, setInlineContactPrefill] = useState('');
+
     useEffect(() => {
         if (isOpen) {
             if (initialData) {
@@ -117,6 +128,7 @@ export function TransactionModal({
                 if (initialData.isRecurring || initialData.tags?.length || initialData.observation || initialData.receiptUrl) {
                     setIsExpanded(true);
                 }
+                setContactId(initialData.contactId || '');
                 setIsEditing(false); // Default to View Mode
             } else {
                 resetForm();
@@ -144,6 +156,7 @@ export function TransactionModal({
         setTags([]);
         setTagInput('');
         setReceiptFile(null);
+        setContactId('');
     };
 
     const addTag = (tag: string) => {
@@ -177,6 +190,11 @@ export function TransactionModal({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        // Require contact only for NEW transactions; existing ones are safe
+        if (!initialData && !contactId) {
+            alert('Por favor, selecione uma Pessoa / Fornecedor antes de salvar.');
+            return;
+        }
         onSubmit({
             description,
             amount: parseFloat(amount),
@@ -194,7 +212,8 @@ export function TransactionModal({
             recurringType: isRecurring ? recurringType : undefined,
             recurrenceCount: (isRecurring && recurringType === 'INSTALLMENT') ? recurrenceCount : undefined,
             file: receiptFile || undefined,
-            parentId: initialData?.parentId
+            parentId: initialData?.parentId,
+            contactId: contactId || undefined,
         });
         onClose();
     };
@@ -218,6 +237,7 @@ export function TransactionModal({
     if (!isOpen) return null;
 
     return (
+        <>
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
             <div
                 className={`bg-white rounded-2xl shadow-2xl transform transition-all duration-300 ease-in-out flex flex-col md:flex-row overflow-hidden
@@ -506,6 +526,20 @@ export function TransactionModal({
                             <div>
                                 <input required type="text" value={description} onChange={e => setDescription(e.target.value)} className="w-full px-4 py-3 bg-gray-50/50 border-none rounded-xl font-medium focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder-gray-300 text-lg" placeholder="Descrição (ex: Mercado, Salário)" />
                             </div>
+
+                            {/* PESSOA / FORNECEDOR */}
+                            {type !== 'TRANSFER' && (
+                                <ContactAutocomplete
+                                    contacts={contacts}
+                                    value={contactId}
+                                    onChange={setContactId}
+                                    required={!initialData}
+                                    onRequestCreate={(name) => {
+                                        setInlineContactPrefill(name);
+                                        setShowInlineContactForm(true);
+                                    }}
+                                />
+                            )}
 
                             {/* ACCOUNTS & CATEGORY GRID */}
                             <div className="grid grid-cols-2 gap-4">
@@ -891,6 +925,25 @@ export function TransactionModal({
                     </div>
                 )
             }
-        </div >
+        </div>
+
+        {/* INLINE CONTACT CREATION (from autocomplete "Criar") */}
+        {showInlineContactForm && onCreateContact && (
+            <ContactFormModal
+                isOpen={showInlineContactForm}
+                prefillName={inlineContactPrefill}
+                onClose={() => setShowInlineContactForm(false)}
+                onSubmit={async (data) => {
+                    const created = await onCreateContact(inlineContactPrefill, data);
+                    if (created) {
+                        setContactId(created.id);
+                        setShowInlineContactForm(false);
+                        return {};
+                    }
+                    return {};
+                }}
+            />
+        )}
+        </>
     );
 }

@@ -6,6 +6,7 @@ import {
   TransactionType,
   TransactionStatus,
   PaymentMethod,
+  Contact,
 } from "../types";
 import { MonthSelector } from "./ui/MonthSelector";
 import { Button } from "./ui/Button";
@@ -14,6 +15,7 @@ interface TransactionListProps {
   transactions: Transaction[];
   accounts: Account[];
   categories: Category[];
+  contacts?: Contact[];
   onDelete: (id: string, force?: boolean) => void;
   onEdit: (transaction: Transaction) => void;
   onToggleStatus: (id: string) => void;
@@ -513,6 +515,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   transactions,
   accounts,
   categories,
+  contacts = [],
   onDelete,
   onEdit,
   onSettleTransaction,
@@ -549,16 +552,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   // Scroll effect
   useEffect(() => {
       if (initialHighlightedId) {
-          // Reset filters to ensure visibility? User might have filters on. 
-          // For now assume user clears filters or navigation sets date correct.
           setTimeout(() => {
               const el = document.getElementById(`tx-${initialHighlightedId}`);
               if (el) {
                   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
               }
-          }, 800); // 800ms to allow rendering
+          }, 800);
       }
-  }, [initialHighlightedId, startDate]); // startDate change triggers re-render, then scroll
+  }, [initialHighlightedId, startDate]);
 
   const [filterType, setFilterType] = useState<
     "ALL" | "INCOME" | "EXPENSE" | "TRANSFER"
@@ -569,6 +570,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
   const [filterCategory, setFilterCategory] = useState<string>("ALL");
   const [filterAccount, setFilterAccount] = useState<string>("ALL");
   const [filterTag, setFilterTag] = useState<string>("ALL");
+  const [filterContact, setFilterContact] = useState<string>("ALL");
   const [categorySearch, setCategorySearch] = useState("");
   const [ignoreDate, setIgnoreDate] = useState(false);
   const [showCustomRange, setShowCustomRange] = useState(false);
@@ -724,6 +726,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       if (filterTag !== "ALL" && (!t.tags || !t.tags.includes(filterTag)))
         return false;
 
+      // Filtro de Pessoa / Fornecedor
+      if (filterContact !== "ALL" && t.contactId !== filterContact)
+        return false;
+
       // Busca Texto
       if (
         searchQuery &&
@@ -774,9 +780,11 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     filterCategory,
     filterAccount,
     filterTag,
+    filterContact,
     ignoreDate,
     searchQuery,
   ]);
+
 
   return (
     <div className="h-full flex flex-col bg-gray-50/30">
@@ -1403,6 +1411,28 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                       </div>
                     )}
                   </div>
+
+                  {/* FILTRO PESSOA / FORNECEDOR */}
+                  {contacts.length > 0 && (
+                    <select
+                      value={filterContact}
+                      onChange={(e) => setFilterContact(e.target.value)}
+                      className={`h-[42px] px-3 rounded-xl text-[10px] font-bold border shadow-sm uppercase tracking-wide outline-none focus:ring-2 focus:ring-blue-500/20 ${
+                        filterContact !== "ALL"
+                          ? "border-blue-200 text-blue-700 bg-blue-50"
+                          : "border-gray-200 text-gray-700 bg-white"
+                      }`}
+                    >
+                      <option value="ALL">Pessoa / Fornecedor</option>
+                      {contacts
+                        .filter((c) => c.isActive)
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.fantasyName}
+                          </option>
+                        ))}
+                    </select>
+                  )}
 
                   <button
                     onClick={() => setIgnoreDate(!ignoreDate)}

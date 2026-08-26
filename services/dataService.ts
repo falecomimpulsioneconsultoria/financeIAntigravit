@@ -1,9 +1,10 @@
 import { supabase } from '../lib/supabaseClient';
 import {
   User, Account, Category, Transaction, FinancialSummary,
-  PaymentMethod, Plan
+  PaymentMethod, Plan, Contact
 } from '../types';
 import { authService } from './authService';
+
 
 const checkReadOnly = () => {
   const user = authService.getCurrentUser();
@@ -51,8 +52,10 @@ export const dataService = {
       recurringType: t.recurring_type,
       installmentCurrent: t.installment_current,
       installmentTotal: t.installment_total,
-      parentId: t.parent_id
+      parentId: t.parent_id,
+      contactId: t.contact_id ?? undefined,
     }));
+
   },
 
   createTransaction: async (userId: string, transaction: any): Promise<Transaction | null> => {
@@ -78,8 +81,10 @@ export const dataService = {
       recurring_type: transaction.recurringType,
       installment_current: transaction.installmentCurrent,
       installment_total: transaction.installmentTotal,
-      parent_id: transaction.parentId
+      parent_id: transaction.parentId,
+      contact_id: transaction.contactId ?? null,
     };
+
 
     // HANDLE RECURRENCE / INSTALLMENTS
     if (transaction.isRecurring && !transaction.groupId) { // Only if not already part of a group (avoid recursion if passed)
@@ -197,8 +202,10 @@ export const dataService = {
       observation: transaction.observation,
       is_recurring: transaction.isRecurring,
       recurring_type: transaction.recurringType,
-      parent_id: transaction.parentId
+      parent_id: transaction.parentId,
+      contact_id: transaction.contactId ?? null,
     };
+
 
     const { error } = await supabase
       .from('transactions')
@@ -517,5 +524,174 @@ export const dataService = {
     const { data, error } = await supabase.from('plans').select('*');
     if (error) return [];
     return data || [];
-  }
+  },
+
+  // =====================================================
+  // --- CONTACTS (Pessoas / Fornecedores) ---
+  // =====================================================
+
+  getContacts: async (userId: string): Promise<Contact[]> => {
+    const { data, error } = await supabase
+      .from('contacts')
+      .select('*')
+      .eq('user_id', userId)
+      .order('fantasy_name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching contacts:', error.message);
+      return [];
+    }
+
+    return (data || []).map((c: any) => ({
+      id: c.id,
+      userId: c.user_id,
+      fantasyName: c.fantasy_name,
+      legalName: c.legal_name ?? undefined,
+      personType: c.person_type ?? 'FISICA',
+      cpfCnpj: c.cpf_cnpj ?? undefined,
+      email: c.email ?? undefined,
+      phone: c.phone ?? undefined,
+      whatsapp: c.whatsapp ?? undefined,
+      mobile: c.mobile ?? undefined,
+      labels: c.labels ?? [],
+      isActive: c.is_active ?? true,
+      createdAt: c.created_at,
+    }));
+  },
+
+  // Check for duplicates: returns field name that is duplicated, or null
+  checkContactDuplicate: async (
+    userId: string,
+    fields: { cpfCnpj?: string; email?: string; phone?: string },
+    excludeId?: string
+  ): Promise<string | null> => {
+    const checks: { field: string; column: string; value: string }[] = [];
+
+    if (fields.cpfCnpj?.trim()) {
+      const cleaned = fields.cpfCnpj.replace(/\D/g, '');
+      if (cleaned) checks.push({ field: 'CPF/CNPJ', column: 'cpf_cnpj', value: fields.cpfCnpj.trim() });
+    }
+    if (fields.email?.trim()) {
+      checks.push({ field: 'E-mail', column: 'email', value: fields.email.trim().toLowerCase() });
+    }
+    if (fields.phone?.trim()) {
+      checks.push({ field: 'Telefone', column: 'phone', value: fields.phone.trim() });
+    }
+
+    for (const check of checks) {
+      let query = supabase
+        .from('contacts')
+        .select('id')
+        .eq('user_id', userId)
+        .eq(check.column, check.value);
+
+      if (excludeId) query = query.neq('id', excludeId);
+
+      const { data } = await query.limit(1);
+      if (data && data.length > 0) return check.field;
+    }
+
+    return null;
+  },
+
+  createContact: async (userId: string, contact: Omit<Contact, 'id' | 'userId' | 'createdAt'>): Promise<{ data: Contact | null; duplicateField?: string }> => {
+    checkReadOnly();
+
+    const duplicate = await dataService.checkContactDuplicate(userId, {
+      cpfCnpj: contact.cpfCnpj,
+      email: contact.email,
+      phone: contact.phone,
+    });
+
+    if (duplicate) return { data: null, duplicateField: duplicate };
+
+    const { data, error } = await supabase
+      .from('contacts')
+      .insert([{
+        user_id: userId,
+        fantasy_name: contact.fantasyName,
+        legal_name: contact.legalName || null,
+        person_type: contact.personType,
+        cpf_cnpj: contact.cpfCnpj || null,
+        email: contact.email ? contact.email.toLowerCase() : null,
+        phone: contact.phone || null,
+        whatsapp: contact.whatsapp || null,
+        mobile: contact.mobile || null,
+        labels: contact.labels,
+        is_active: contact.isActive,
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating contact:', error.message);
+      return { data: null };
+    }
+
+    return {
+      data: {
+        id: data.id,
+        userId: data.user_id,
+        fantasyName: data.fantasy_name,
+        legalName: data.legal_name ?? undefined,
+        personType: data.person_type,
+        cpfCnpj: data.cpf_cnpj ?? undefined,
+        email: data.email ?? undefined,
+        phone: data.phone ?? undefined,
+        whatsapp: data.whatsapp ?? undefined,
+        mobile: data.mobile ?? undefined,
+        labels: data.labels ?? [],
+        isActive: data.is_active,
+        createdAt: data.created_at,
+      },
+    };
+  },
+
+  updateContact: async (userId: string, contact: Contact): Promise<{ ok: boolean; duplicateField?: string }> => {
+    checkReadOnly();
+
+    const duplicate = await dataService.checkContactDuplicate(userId, {
+      cpfCnpj: contact.cpfCnpj,
+      email: contact.email,
+      phone: contact.phone,
+    }, contact.id);
+
+    if (duplicate) return { ok: false, duplicateField: duplicate };
+
+    const { error } = await supabase
+      .from('contacts')
+      .update({
+        fantasy_name: contact.fantasyName,
+        legal_name: contact.legalName || null,
+        person_type: contact.personType,
+        cpf_cnpj: contact.cpfCnpj || null,
+        email: contact.email ? contact.email.toLowerCase() : null,
+        phone: contact.phone || null,
+        whatsapp: contact.whatsapp || null,
+        mobile: contact.mobile || null,
+        labels: contact.labels,
+        is_active: contact.isActive,
+      })
+      .eq('id', contact.id)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error updating contact:', error.message);
+      return { ok: false };
+    }
+
+    return { ok: true };
+  },
+
+  deleteContact: async (userId: string, id: string): Promise<void> => {
+    checkReadOnly();
+    const { error } = await supabase
+      .from('contacts')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) console.error('Error deleting contact:', error.message);
+  },
 };
+

@@ -1,5 +1,35 @@
 
 export type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER';
+
+export type PersonType = 'FISICA' | 'JURIDICA';
+
+export type ContactLabel =
+  | 'Cliente'
+  | 'Transportadora'
+  | 'Tecnico'
+  | 'Fornecedor'
+  | 'Colaborador'
+  | 'Representada'
+  | 'Vendedor'
+  | 'Credenciadora'
+  | 'Fabricante';
+
+export interface Contact {
+  id: string;
+  userId: string;
+  fantasyName: string;
+  legalName?: string;
+  personType: PersonType;
+  cpfCnpj?: string;
+  email?: string;
+  phone?: string;
+  whatsapp?: string;
+  mobile?: string;
+  labels: ContactLabel[];
+  isActive: boolean;
+  createdAt: string;
+}
+
 export type TransactionStatus = 'PAID' | 'PENDING';
 export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'USER';
 export type RecurrenceType = 'FIXED' | 'INSTALLMENT';
@@ -138,6 +168,8 @@ export interface Transaction {
   installmentCurrent?: number;
   installmentTotal?: number;
   parentId?: string;
+  contactId?: string; // Pessoa / Fornecedor — opcional para retrocompatibilidade
+
 }
 
 export interface FinancialSummary {

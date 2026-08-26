@@ -16,6 +16,7 @@ import { AdminPlans } from "./components/admin/AdminPlans";
 import { AdminPayments } from "./components/admin/AdminPayments";
 import { AdminSettings } from "./components/admin/AdminSettings";
 import { SubscriptionAlert } from "./components/subscription/SubscriptionAlert";
+import { ContactManager } from "./components/contacts/ContactManager";
 import {
   Transaction,
   Account,
@@ -26,6 +27,7 @@ import {
   UserPermissions,
   PaymentMethod,
   TransactionType,
+  Contact,
 } from "./types";
 import { AuthScreen } from "./components/Auth";
 import { authService } from "./services/authService";
@@ -68,7 +70,9 @@ type ViewState =
   | "ADMIN_PLANS"
   | "ADMIN_PAYMENTS"
   | "ADMIN_SETTINGS"
-  | "TAGS";
+  | "TAGS"
+  | "CONTACTS";
+
 
 interface TransactionFormData extends Omit<Transaction, "id"> {
   recurrenceCount?: number;
@@ -90,6 +94,8 @@ export default function App() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+
   const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>(
     DEFAULT_DASHBOARD_CONFIG,
   );
@@ -158,16 +164,18 @@ export default function App() {
   const fetchData = async (userId: string) => {
     setLoadingData(true);
     try {
-      const [txs, accs, cats, methods] = await Promise.all([
+      const [txs, accs, cats, methods, ctcts] = await Promise.all([
         dataService.getTransactions(userId),
         dataService.getAccounts(userId),
         dataService.getCategories(userId),
         dataService.getPaymentMethods(userId),
+        dataService.getContacts(userId),
       ]);
       setTransactions(txs || []);
       setAccounts(accs || []);
       setCategories(cats || []);
       setPaymentMethods(methods || []);
+      setContacts(ctcts || []);
 
       const savedConfig = localStorage.getItem(`config_${userId}`);
       if (savedConfig) setDashboardConfig(JSON.parse(savedConfig));
@@ -177,6 +185,7 @@ export default function App() {
       setLoadingData(false);
     }
   };
+
 
   // Balance is now automatically recalculated by the database trigger
   // (tr_recalculate_balance) on every INSERT/UPDATE/DELETE on transactions.
@@ -576,6 +585,50 @@ export default function App() {
     await fetchData(currentUser.ownerId || currentUser.id);
   };
 
+  // ---- CONTACT HANDLERS ----
+  type ContactFormData = Omit<Contact, 'id' | 'userId' | 'createdAt'>;
+
+  const handleAddContact = async (data: ContactFormData) => {
+    if (!currentUser) return { duplicateField: undefined };
+    const result = await dataService.createContact(currentUser.ownerId || currentUser.id, data);
+    if (!result.duplicateField) {
+      await fetchData(currentUser.ownerId || currentUser.id);
+    }
+    return { duplicateField: result.duplicateField };
+  };
+
+  const handleEditContact = async (id: string, data: ContactFormData) => {
+    if (!currentUser) return { duplicateField: undefined };
+    const contact: Contact = {
+      ...data,
+      id,
+      userId: currentUser.ownerId || currentUser.id,
+      createdAt: new Date().toISOString(),
+    };
+    const result = await dataService.updateContact(currentUser.ownerId || currentUser.id, contact);
+    if (result.ok) {
+      await fetchData(currentUser.ownerId || currentUser.id);
+    }
+    return { duplicateField: result.duplicateField };
+  };
+
+  const handleDeleteContact = async (id: string) => {
+    if (!currentUser) return;
+    await dataService.deleteContact(currentUser.ownerId || currentUser.id, id);
+    await fetchData(currentUser.ownerId || currentUser.id);
+  };
+
+  // Inline contact creation from TransactionModal autocomplete
+  const handleCreateContactInline = async (_name: string, data: ContactFormData): Promise<Contact | null> => {
+    if (!currentUser) return null;
+    const result = await dataService.createContact(currentUser.ownerId || currentUser.id, data);
+    if (result.data) {
+      await fetchData(currentUser.ownerId || currentUser.id);
+      return result.data;
+    }
+    return null;
+  };
+
   const handleNavClick = (view: ViewState) => {
     setActiveView(view);
     setIsMobileMenuOpen(false);
@@ -635,6 +688,7 @@ export default function App() {
               transactions={transactions}
               accounts={accounts}
               categories={categories}
+              contacts={contacts}
               onDelete={deleteTransaction}
               onEdit={(t) => {
                 setEditingTransaction(t);
@@ -647,6 +701,18 @@ export default function App() {
             />
           </div>
         );
+      case "CONTACTS":
+        return (
+          <div className="w-full">
+            <ContactManager
+              contacts={contacts}
+              onAdd={handleAddContact}
+              onEdit={handleEditContact}
+              onDelete={handleDeleteContact}
+            />
+          </div>
+        );
+
       case "ACCOUNTS":
         return (
           <div className="w-full">
@@ -977,6 +1043,11 @@ export default function App() {
                   label: "Tags",
                   icon: "M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z",
                 },
+                {
+                  view: "CONTACTS",
+                  label: "Contatos",
+                  icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
+                },
                 ...(permissions.viewReports
                   ? [
                       {
@@ -1124,11 +1195,13 @@ export default function App() {
         accounts={accounts}
         categories={categories}
         paymentMethods={paymentMethods}
+        contacts={contacts}
         initialData={editingTransaction}
         initialType={modalInitialType}
         currency={dashboardConfig.currency}
         availableTags={availableTags}
         onSubmit={handleSaveTransaction}
+        onCreateContact={handleCreateContactInline}
       />
 
       {/* MODAL DE CONFIRMAÃ‡ÃƒO */}
