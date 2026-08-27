@@ -53,6 +53,7 @@ const TransactionRow: React.FC<{
   onToggleStatus: (id: string) => void;
   highlightedId?: string;
   visibleColumns: Record<string, boolean>;
+  contacts?: Contact[];
 }> = ({
   tx,
   isChild = false,
@@ -69,9 +70,11 @@ const TransactionRow: React.FC<{
   onToggleStatus,
   highlightedId,
   visibleColumns,
+  contacts = [],
 }) => {
   const account = accounts.find((a) => a.id === tx.accountId);
   const category = categories.find((c) => c.id === tx.categoryId);
+  const contact = contacts.find((c) => c.id === tx.contactId);
   const catCode = category ? categoryCodeMap.get(category.id) : "";
 
   const dateObj = new Date(
@@ -221,6 +224,22 @@ const TransactionRow: React.FC<{
           ) : (
             <span className="text-gray-300">-</span>
           )}
+        </td>
+        )}
+
+        {/* PESSOA */}
+        {visibleColumns.pessoa && (
+        <td className="px-4 py-2 align-middle">
+          <div className="flex flex-col">
+            <span className="text-[11px] font-medium text-gray-700 truncate max-w-[150px]">
+              {contact ? contact.fantasyName : <span className="text-gray-300">-</span>}
+            </span>
+            {contact && contact.document && (
+              <span className="text-[9px] text-gray-400">
+                {contact.document}
+              </span>
+            )}
+          </div>
         </td>
         )}
 
@@ -519,6 +538,7 @@ const TransactionRow: React.FC<{
             index={idx}
             accounts={accounts}
             categories={categories}
+            contacts={contacts}
             categoryCodeMap={categoryCodeMap}
             childrenMap={childrenMap}
             expandedParents={expandedParents}
@@ -664,6 +684,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     vencimento: true,
     tipo: true,
     categoria: true,
+    pessoa: true,
     descricao: true,
     conta: true,
     previsto: true,
@@ -949,6 +970,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                   { id: "vencimento", label: "Vencimento" },
                   { id: "tipo", label: "Tipo" },
                   { id: "categoria", label: "Categoria" },
+                  { id: "pessoa", label: "Pessoa / Forn." },
                   { id: "descricao", label: "Descrição" },
                   { id: "conta", label: "Conta" },
                   { id: "previsto", label: "Previsto" },
@@ -1584,6 +1606,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                   {visibleColumns.vencimento && <th className="px-4 py-2 text-center w-20">Vencimento</th>}
                   {visibleColumns.tipo && <th className="px-4 py-2 text-center">Tipo</th>}
                   {visibleColumns.categoria && <th className="px-4 py-2 text-left">Categoria</th>}
+                  {visibleColumns.pessoa && <th className="px-4 py-2 text-left">Pessoa / Fornecedor</th>}
                   {visibleColumns.descricao && <th className="px-4 py-2 text-left">Descrição</th>}
                   {visibleColumns.conta && <th className="px-4 py-2 text-left">Conta</th>}
                   {visibleColumns.previsto && <th className="px-4 py-2 text-right">Previsto</th>}
@@ -1610,6 +1633,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                       tx={r}
                       accounts={accounts}
                       categories={categories}
+                      contacts={contacts}
                       categoryCodeMap={categoryCodeMap}
                       childrenMap={childrenMap}
                       expandedParents={expandedParents}
