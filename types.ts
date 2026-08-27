@@ -169,7 +169,13 @@ export interface Transaction {
   installmentTotal?: number;
   parentId?: string;
   contactId?: string; // Pessoa / Fornecedor — opcional para retrocompatibilidade
+}
 
+export interface DescriptionSuggestion {
+  id: string;
+  user_id: string;
+  text: string;
+  created_at: string;
 }
 
 export interface FinancialSummary {

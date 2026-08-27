@@ -8,6 +8,7 @@ import { ContactFormModal } from './contacts/ContactFormModal';
 interface TransactionFormData extends Omit<Transaction, 'id'> {
     recurrenceCount?: number;
     file?: File;
+    saveSuggestion?: boolean;
 }
 
 interface TransactionModalProps {
@@ -21,6 +22,7 @@ interface TransactionModalProps {
     initialType?: TransactionType;
     currency?: string;
     availableTags?: string[];
+    descriptionSuggestions?: {id: string, text: string}[];
     onSubmit: (data: TransactionFormData) => void;
     onCreateContact?: (name: string, data: Omit<Contact, 'id' | 'userId' | 'createdAt'>) => Promise<Contact | null>;
 }
@@ -107,6 +109,7 @@ export function TransactionModal({
     const [contactId, setContactId] = useState('');
     const [showInlineContactForm, setShowInlineContactForm] = useState(false);
     const [inlineContactPrefill, setInlineContactPrefill] = useState('');
+    const [saveSuggestion, setSaveSuggestion] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -157,6 +160,7 @@ export function TransactionModal({
         setTagInput('');
         setReceiptFile(null);
         setContactId('');
+        setSaveSuggestion(false);
     };
 
     const addTag = (tag: string) => {
@@ -214,6 +218,7 @@ export function TransactionModal({
             file: receiptFile || undefined,
             parentId: initialData?.parentId,
             contactId: contactId || undefined,
+            saveSuggestion: (!initialData && saveSuggestion) ? true : undefined,
         });
         onClose();
     };
@@ -522,9 +527,33 @@ export function TransactionModal({
                             </div>
 
                             {/* DESCRIPTION */}
-                            {/* DESCRIPTION */}
                             <div>
-                                <input type="text" value={description} onChange={e => setDescription(e.target.value)} className="w-full px-4 py-3 bg-gray-50/50 border-none rounded-xl font-medium focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder-gray-300 text-lg" placeholder="Descrição (ex: Mercado, Salário)" />
+                                <input 
+                                    type="text" 
+                                    list="description-suggestions-list"
+                                    value={description} 
+                                    onChange={e => setDescription(e.target.value)} 
+                                    className="w-full px-4 py-3 bg-gray-50/50 border-none rounded-xl font-medium focus:bg-white focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder-gray-300 text-lg" 
+                                    placeholder="Descrição (ex: Mercado, Salário)" 
+                                />
+                                {descriptionSuggestions && descriptionSuggestions.length > 0 && (
+                                    <datalist id="description-suggestions-list">
+                                        {descriptionSuggestions.map(s => (
+                                            <option key={s.id} value={s.text} />
+                                        ))}
+                                    </datalist>
+                                )}
+                                {!initialData && description && (
+                                    <label className="flex items-center gap-2 mt-2 ml-2 cursor-pointer group">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={saveSuggestion} 
+                                            onChange={e => setSaveSuggestion(e.target.checked)}
+                                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                                        />
+                                        <span className="text-xs text-gray-500 font-medium group-hover:text-gray-700 transition-colors">Salvar como sugestão para os próximos lançamentos</span>
+                                    </label>
+                                )}
                             </div>
 
                             {/* PESSOA / FORNECEDOR */}

@@ -95,6 +95,7 @@ export default function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [descriptionSuggestions, setDescriptionSuggestions] = useState<{id: string, text: string}[]>([]);
 
   const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>(
     DEFAULT_DASHBOARD_CONFIG,
@@ -164,18 +165,20 @@ export default function App() {
   const fetchData = async (userId: string) => {
     setLoadingData(true);
     try {
-      const [txs, accs, cats, methods, ctcts] = await Promise.all([
+      const [txs, accs, cats, methods, ctcts, sugs] = await Promise.all([
         dataService.getTransactions(userId),
         dataService.getAccounts(userId),
         dataService.getCategories(userId),
         dataService.getPaymentMethods(userId),
         dataService.getContacts(userId),
+        dataService.getDescriptionSuggestions(userId),
       ]);
       setTransactions(txs || []);
       setAccounts(accs || []);
       setCategories(cats || []);
       setPaymentMethods(methods || []);
       setContacts(ctcts || []);
+      setDescriptionSuggestions(sugs || []);
 
       const savedConfig = localStorage.getItem(`config_${userId}`);
       if (savedConfig) setDashboardConfig(JSON.parse(savedConfig));
@@ -192,7 +195,12 @@ export default function App() {
 
   const handleSaveTransaction = async (data: TransactionFormData) => {
     if (!currentUser) return;
-    const { recurrenceCount, file, ...transactionData } = data;
+    const { recurrenceCount, file, saveSuggestion, ...transactionData } = data;
+
+    if (saveSuggestion && transactionData.description) {
+      await dataService.addDescriptionSuggestion(currentUser.ownerId || currentUser.id, transactionData.description);
+      // Let it refresh when fetchData runs below
+    }
 
     let finalReceiptUrl = transactionData.receiptUrl;
 
@@ -573,6 +581,12 @@ export default function App() {
     await fetchData(currentUser.ownerId || currentUser.id);
   };
 
+  const handleDeleteDescriptionSuggestion = async (id: string) => {
+    if (!currentUser) return;
+    await dataService.deleteDescriptionSuggestion(currentUser.ownerId || currentUser.id, id);
+    await fetchData(currentUser.ownerId || currentUser.id);
+  };
+
   const handleRenameTag = async (oldTag: string, newTag: string) => {
     if (!currentUser) return;
     await dataService.renameTag(currentUser.id, oldTag, newTag);
@@ -826,6 +840,8 @@ export default function App() {
               onDeletePaymentMethod={handleDeletePaymentMethod}
               transactions={transactions}
               onResetData={handleResetData}
+              descriptionSuggestions={descriptionSuggestions}
+              onDeleteDescriptionSuggestion={handleDeleteDescriptionSuggestion}
             />
           )
         );
@@ -1085,8 +1101,36 @@ export default function App() {
           )}
         </nav>
 
-        {/* BOTÃO SAIR */}
-        <div className="p-3 border-t border-gray-100">
+        {/* BOTTOM MENU (CONFIG & SAIR) */}
+        <div className="p-3 border-t border-gray-100 space-y-1">
+          {permissions.viewSettings && (
+            <button
+              onClick={() => handleNavClick("SETTINGS")}
+              className={`w-full flex items-center ${!isSidebarOpen ? "justify-center" : "gap-3"} px-3 py-2.5 rounded-lg transition-all duration-200 group ${activeView === "SETTINGS" ? "bg-blue-50 text-blue-600" : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"}`}
+            >
+              <svg
+                className="w-5 h-5 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              {isSidebarOpen && <span className="text-sm font-medium">Configurações</span>}
+            </button>
+          )}
+
           <button
             onClick={handleLogout}
             className={`w-full flex items-center ${!isSidebarOpen ? "justify-center" : "gap-3"} text-gray-400 hover:text-red-500 hover:bg-red-50 px-3 py-2.5 rounded-lg transition-all duration-200 group`}
@@ -1200,6 +1244,7 @@ export default function App() {
         initialType={modalInitialType}
         currency={dashboardConfig.currency}
         availableTags={availableTags}
+        descriptionSuggestions={descriptionSuggestions}
         onSubmit={handleSaveTransaction}
         onCreateContact={handleCreateContactInline}
       />

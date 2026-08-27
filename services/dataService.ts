@@ -693,5 +693,51 @@ export const dataService = {
 
     if (error) console.error('Error deleting contact:', error.message);
   },
+
+  // --- DESCRIPTION SUGGESTIONS ---
+  getDescriptionSuggestions: async (userId: string): Promise<{id: string, text: string}[]> => {
+    const { data, error } = await supabase
+      .from('description_suggestions')
+      .select('id, text')
+      .eq('user_id', userId)
+      .order('text', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching description suggestions:', error.message);
+      return [];
+    }
+
+    return data || [];
+  },
+
+  addDescriptionSuggestion: async (userId: string, text: string): Promise<void> => {
+    checkReadOnly();
+    
+    // Evitar duplicidade exata no lado do cliente
+    const existing = await dataService.getDescriptionSuggestions(userId);
+    if (existing.some(s => s.text.toLowerCase() === text.toLowerCase())) return;
+
+    const { error } = await supabase
+      .from('description_suggestions')
+      .insert({
+        user_id: userId,
+        text
+      });
+
+    if (error) {
+      console.error('Error adding description suggestion:', error.message);
+    }
+  },
+
+  deleteDescriptionSuggestion: async (userId: string, id: string): Promise<void> => {
+    checkReadOnly();
+    const { error } = await supabase
+      .from('description_suggestions')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) console.error('Error deleting description suggestion:', error.message);
+  },
 };
 
