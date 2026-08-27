@@ -930,6 +930,46 @@ export const TransactionList: React.FC<TransactionListProps> = ({
             </svg>
             Novo Lançamento
           </button>
+          {/* Colunas */}
+          <div className="relative" ref={columnMenuRef}>
+            <button
+              onClick={() => setShowColumnMenu(!showColumnMenu)}
+              className="h-[38px] px-3 flex items-center justify-center bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all shadow-sm text-gray-500"
+              title="Colunas Visíveis"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+              </svg>
+            </button>
+
+            {showColumnMenu && (
+              <div className="absolute right-0 top-[45px] w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-2 py-3 max-h-[400px] overflow-y-auto">
+                <h4 className="text-xs font-bold text-gray-500 uppercase px-3 mb-2">Colunas</h4>
+                {[
+                  { id: "vencimento", label: "Vencimento" },
+                  { id: "tipo", label: "Tipo" },
+                  { id: "categoria", label: "Categoria" },
+                  { id: "descricao", label: "Descrição" },
+                  { id: "conta", label: "Conta" },
+                  { id: "previsto", label: "Previsto" },
+                  { id: "realizado", label: "Realizado" },
+                  { id: "saldo", label: "Saldo" },
+                  { id: "status", label: "Status" },
+                  { id: "acoes", label: "Ações" }
+                ].map(col => (
+                  <label key={col.id} className="flex items-center px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={visibleColumns[col.id as keyof typeof visibleColumns]}
+                      onChange={(e) => setVisibleColumns(prev => ({ ...prev, [col.id]: e.target.checked }))}
+                      className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                    />
+                    <span className="ml-3 text-sm font-medium text-gray-700">{col.label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1532,47 +1572,6 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="h-[42px] pl-10 pr-4 bg-white border border-gray-200 rounded-xl text-xs w-full focus:ring-4 focus:ring-blue-500/5 focus:border-blue-400 outline-none transition-all shadow-sm"
                 />
-              </div>
-
-              {/* Colunas */}
-              <div className="relative" ref={columnMenuRef}>
-                <button
-                  onClick={() => setShowColumnMenu(!showColumnMenu)}
-                  className="h-[42px] px-3 flex items-center justify-center bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all shadow-sm text-gray-500"
-                  title="Colunas Visíveis"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-                  </svg>
-                </button>
-
-                {showColumnMenu && (
-                  <div className="absolute right-0 top-[50px] w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-2 py-3 max-h-[400px] overflow-y-auto">
-                    <h4 className="text-xs font-bold text-gray-500 uppercase px-3 mb-2">Colunas</h4>
-                    {[
-                      { id: "vencimento", label: "Vencimento" },
-                      { id: "tipo", label: "Tipo" },
-                      { id: "categoria", label: "Categoria" },
-                      { id: "descricao", label: "Descrição" },
-                      { id: "conta", label: "Conta" },
-                      { id: "previsto", label: "Previsto" },
-                      { id: "realizado", label: "Realizado" },
-                      { id: "saldo", label: "Saldo" },
-                      { id: "status", label: "Status" },
-                      { id: "acoes", label: "Ações" }
-                    ].map(col => (
-                      <label key={col.id} className="flex items-center px-3 py-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={visibleColumns[col.id as keyof typeof visibleColumns]}
-                          onChange={(e) => setVisibleColumns(prev => ({ ...prev, [col.id]: e.target.checked }))}
-                          className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                        />
-                        <span className="ml-3 text-sm font-medium text-gray-700">{col.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           </div>
