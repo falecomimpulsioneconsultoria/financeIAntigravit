@@ -1,4 +1,4 @@
-﻿// aria-label added for accessibility
+// aria-label added for accessibility
 
 import React, { useState, useMemo } from 'react';
 import { Transaction, Category, TransactionType, DreCategory, User, AIAnalysisResult } from '../types';
@@ -502,17 +502,6 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
                             </div>
                         </div>
                     </div>
-
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                            <h3 className="font-bold text-gray-800 text-lg">Detalhamento Hierárquico</h3>
-                            <div className="flex gap-2">
-                                <button onClick={() => setBreakdownVisibility(prev => ({ ...prev, income: !prev.income }))} className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all border ${breakdownVisibility.income ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-white text-gray-400 border-gray-200 hover:text-emerald-500 hover:border-emerald-200'}`}>{breakdownVisibility.income ? 'âœ“ Receitas' : 'Receitas'}</button>
-                                <button onClick={() => setBreakdownVisibility(prev => ({ ...prev, expense: !prev.expense }))} className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all border ${breakdownVisibility.expense ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-white text-gray-400 border-gray-200 hover:text-rose-500 hover:border-rose-200'}`}>{breakdownVisibility.expense ? 'âœ“ Despesas' : 'Despesas'}</button>
-                            </div>
-                        </div>
-                        <div className="p-6"><div className={`grid gap-8 ${breakdownVisibility.income && breakdownVisibility.expense ? 'md:grid-cols-2' : 'grid-cols-1'}`}>{breakdownVisibility.income && renderBreakdownColumn("Receitas", incomeBreakdownData, 'emerald')}{breakdownVisibility.expense && renderBreakdownColumn("Despesas", expenseBreakdownData, 'rose')}</div></div>
-                    </div>
                 </div>
             )}
 
@@ -533,12 +522,38 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
                                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                                     <PieChart><Pie data={categoryStats.stats} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2}>{categoryStats.stats.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />))}</Pie><Tooltip formatter={(value: number) => `R$ ${value.toFixed(2)}`} /></PieChart>
                                 </ResponsiveContainer>
+                                <div className="flex flex-wrap gap-2 justify-center mt-4">{categoryStats.stats.slice(0, 5).map((entry, index) => (<div key={entry.id} className="flex items-center gap-1 text-xs text-gray-500"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span><span>{entry.name}</span></div>))}</div>
                             </div>
-                            <div className="flex flex-wrap gap-2 justify-center mt-4">{categoryStats.stats.slice(0, 5).map((entry, index) => (<div key={entry.id} className="flex items-center gap-1 text-xs text-gray-500"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span><span>{entry.name}</span></div>))}</div>
+                            {budgetChartData.length > 0 && (
+                                <div className="w-full mt-8 border-t border-gray-100 pt-6">
+                                    <h3 className="text-sm font-bold text-gray-800 mb-4 text-center">Realizado vs Meta</h3>
+                                    <div className="w-full h-48 min-h-[200px]">
+                                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                                            <BarChart data={budgetChartData} layout="vertical" margin={{ left: 30, right: 10 }}>
+                                                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#E5E7EB" />
+                                                <XAxis type="number" hide />
+                                                <YAxis type="category" dataKey="name" width={80} axisLine={false} tickLine={false} tick={{ fill: '#4B5563', fontSize: 10 }} />
+                                                <Tooltip cursor={{ fill: '#F3F4F6' }} formatter={(val: number) => `R$ ${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`} />
+                                                <Legend iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
+                                                <Bar dataKey="Realizado" fill="#3B82F6" radius={[0, 4, 4, 0]} barSize={8} />
+                                                <Bar dataKey="Meta" fill="#9CA3AF" radius={[0, 4, 4, 0]} barSize={8} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-w-0">
-                            <div className="p-6 border-b border-gray-100 flex justify-between items-center"><h3 className="font-bold text-gray-800">Detalhamento por Categoria</h3><Button onClick={handleExportPDF} isLoading={isExporting} size="sm" variant="secondary" className="text-xs">Baixar PDF</Button></div>
-                            <div className="overflow-x-auto"><table className="w-full text-left text-sm text-gray-600"><thead className="bg-gray-50 text-xs uppercase text-gray-400 font-semibold"><tr><th className="px-6 py-4">Categoria</th><th className="px-6 py-4 text-center">Meta / Limite</th><th className="px-6 py-4 text-right">Realizado</th><th className="px-6 py-4 text-center">Desvio</th></tr></thead><tbody className="divide-y divide-gray-100">{categoryStats.stats.map((cat, idx) => { const hasBudget = cat.budgetLimit > 0; const difference = hasBudget ? cat.budgetLimit - cat.value : 0; const percentageOfBudget = hasBudget ? (cat.value / cat.budgetLimit) * 100 : 0; let statusColor = "text-gray-500"; let barColor = "bg-blue-500"; if (hasBudget) { if (categoryViewType === 'EXPENSE') { if (cat.value > cat.budgetLimit) { statusColor = "text-red-600"; barColor = "bg-red-500"; } else { statusColor = "text-emerald-600"; barColor = "bg-emerald-500"; } } else { if (cat.value >= cat.budgetLimit) { statusColor = "text-emerald-600"; barColor = "bg-emerald-500"; } else { statusColor = "text-orange-500"; barColor = "bg-orange-400"; } } } return (<tr key={cat.id} className="hover:bg-gray-50"><td className="px-6 py-4"><div className="flex items-center gap-3"><span className="text-gray-400 font-mono text-xs w-4">#{idx + 1}</span><div className={`w-3 h-3 rounded-full bg-${cat.color}-500`}></div><span className="font-bold text-gray-800">{cat.name}</span></div><div className="pl-10 text-xs text-gray-400 mt-1">{cat.dreCategory ? dreHierarchyMap[cat.dreCategory]?.split(' > ')[1] || cat.dreCategory : ''}</div></td><td className="px-6 py-4 text-center font-medium text-gray-500">{hasBudget ? `R$ ${cat.budgetLimit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}</td><td className="px-6 py-4"><div className="flex flex-col items-end gap-1"><span className="font-bold text-gray-900">R$ {cat.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>{hasBudget && <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className={`h-full ${barColor}`} style={{ width: `${Math.min(percentageOfBudget, 100)}%` }}></div></div>}</div></td><td className="px-6 py-4 text-center">{hasBudget ? <span className={`text-xs font-bold px-2 py-1 rounded border ${statusColor.replace('text-', 'bg-').replace('600', '50').replace('500', '50')} ${statusColor.replace('text-', 'border-').replace('600', '200').replace('500', '200')}`}>{difference >= 0 ? (categoryViewType === 'EXPENSE' ? 'Economia: ' : 'Falta: ') : (categoryViewType === 'EXPENSE' ? 'Excesso: ' : 'Superou: ')} R$ {Math.abs(difference).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span> : <span className="text-gray-300">-</span>}</td></tr>) })}</tbody></table></div>
+                        <div className="lg:col-span-2 min-w-0 flex flex-col gap-4">
+                            <div className="flex justify-end">
+                                <Button onClick={handleExportPDF} isLoading={isExporting} size="sm" variant="secondary" className="text-xs">Baixar PDF</Button>
+                            </div>
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                                {renderBreakdownColumn(
+                                    categoryViewType === 'EXPENSE' ? 'Detalhamento de Despesas' : categoryViewType === 'INCOME' ? 'Detalhamento de Receitas' : 'Detalhamento de Transferências', 
+                                    currentBreakdownData, 
+                                    (categoryViewType === 'EXPENSE' ? 'rose' : 'emerald') as any
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
