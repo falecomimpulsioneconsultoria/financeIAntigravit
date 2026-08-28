@@ -27,7 +27,7 @@ import {
   UserPermissions,
   PaymentMethod,
   TransactionType,
-  Contact,
+  Contact, DescriptionSuggestion,
 } from "./types";
 import { AuthScreen } from "./components/Auth";
 import { authService } from "./services/authService";
@@ -74,7 +74,7 @@ type ViewState =
   | "CONTACTS";
 
 
-interface TransactionFormData extends Omit<Transaction, "id"> {
+interface TransactionFormData extends Omit<Transaction, "id"> { saveSuggestion?: boolean;
   recurrenceCount?: number;
   file?: File;
 }
@@ -95,7 +95,7 @@ export default function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [descriptionSuggestions, setDescriptionSuggestions] = useState<{id: string, text: string}[]>([]);
+  const [descriptionSuggestions, setDescriptionSuggestions] = useState<DescriptionSuggestion[]>([]);
 
   const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>(
     DEFAULT_DASHBOARD_CONFIG,

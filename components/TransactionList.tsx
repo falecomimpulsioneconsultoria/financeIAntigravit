@@ -234,9 +234,9 @@ const TransactionRow: React.FC<{
             <span className="text-[11px] font-medium text-gray-700 truncate max-w-[150px]">
               {contact ? contact.fantasyName : <span className="text-gray-300">-</span>}
             </span>
-            {contact && contact.document && (
+            {contact && contact.cpfCnpj && (
               <span className="text-[9px] text-gray-400">
-                {contact.document}
+                {contact.cpfCnpj}
               </span>
             )}
           </div>

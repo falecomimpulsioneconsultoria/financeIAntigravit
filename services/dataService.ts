@@ -695,7 +695,7 @@ export const dataService = {
   },
 
   // --- DESCRIPTION SUGGESTIONS ---
-  getDescriptionSuggestions: async (userId: string): Promise<{id: string, text: string}[]> => {
+  getDescriptionSuggestions: async (userId: string): Promise<any[]> => {
     const { data, error } = await supabase
       .from('description_suggestions')
       .select('id, text')
