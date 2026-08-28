@@ -267,7 +267,7 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
             .slice(0, 5);
     }, [activeTransactions, categories]);
 
-    const calculateBreakdown = (type: TransactionType) => {
+    function calculateBreakdown(type: TransactionType) {
         const typeTransactions = activeTransactions.filter(t => t.type === type);
         const totalAmount = typeTransactions.reduce((sum, t) => sum + t.amount, 0);
         const categoryValues: Record<string, number> = {};
