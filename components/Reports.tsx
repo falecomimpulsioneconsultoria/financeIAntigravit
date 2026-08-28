@@ -235,27 +235,21 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
     const categoryStats = useMemo(() => {
         const filtered = activeTransactions.filter(t => t.type === categoryViewType);
         const totalAmount = filtered.reduce((acc, t) => acc + t.amount, 0);
-        const map = new Map<string, { value: number; count: number }>();
-        filtered.forEach(t => {
-            const current = map.get(t.categoryId) || { value: 0, count: 0 };
-            map.set(t.categoryId, { value: current.value + t.amount, count: current.count + 1 });
-        });
-        const stats = Array.from(map.entries()).map(([catId, data]) => {
-            const cat = categories.find(c => c.id === catId);
-            return {
-                id: catId,
-                name: cat?.name || 'Sem Categoria',
-                color: cat?.color || 'gray',
-                dreCategory: cat?.dreCategory,
-                budgetLimit: cat?.budgetLimit || 0,
-                value: data.value,
-                count: data.count,
-                average: data.value / data.count,
-                percentage: totalAmount > 0 ? (data.value / totalAmount) * 100 : 0
-            };
-        }).sort((a, b) => b.value - a.value);
-        return { stats, totalAmount };
-    }, [activeTransactions, categoryViewType, categories]);
+        return { totalAmount };
+    }, [activeTransactions, categoryViewType]);
+
+    const currentBreakdownData = useMemo(() => calculateBreakdown(categoryViewType), [activeTransactions, categories, categoryViewType]);
+
+    const budgetChartData = useMemo(() => {
+        return currentBreakdownData.data
+            .filter(cat => cat.budgetLimit > 0)
+            .map(cat => ({
+                name: cat.name,
+                Realizado: cat.value,
+                Meta: cat.budgetLimit
+            }))
+            .slice(0, 5);
+    }, [currentBreakdownData]);
 
     const categoryMixData = useMemo(() => {
         const expenses = activeTransactions.filter(t => t.type === 'EXPENSE');
