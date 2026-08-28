@@ -100,7 +100,7 @@ export function ContactAutocomplete({
     Cliente: 'bg-blue-100 text-blue-700',
     Fornecedor: 'bg-amber-100 text-amber-700',
     Colaborador: 'bg-green-100 text-green-700',
-    Tecnico: 'bg-purple-100 text-purple-700',
+    Tecnico: 'bg-emerald-100 text-emerald-700',
     Vendedor: 'bg-cyan-100 text-cyan-700',
     Transportadora: 'bg-orange-100 text-orange-700',
     Representada: 'bg-pink-100 text-pink-700',

@@ -232,6 +232,31 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
         return data;
     }, [activeTransactions, filterStart, filterEnd, accountingBasis, activeTab]);
 
+    function calculateBreakdown(type: TransactionType) {
+        const typeTransactions = activeTransactions.filter(t => t.type === type);
+        const totalAmount = typeTransactions.reduce((sum, t) => sum + t.amount, 0);
+        const categoryValues: Record<string, number> = {};
+        typeTransactions.forEach(t => {
+            categoryValues[t.categoryId] = (categoryValues[t.categoryId] || 0) + t.amount;
+        });
+        const parents = categories.filter(c => c.type === type && !c.parentId);
+        const data = parents.map(parent => {
+            const directValue = categoryValues[parent.id] || 0;
+            const children = categories.filter(c => c.parentId === parent.id);
+            const childrenData = children.map(child => {
+                const val = categoryValues[child.id] || 0;
+                return { ...child, value: val, percentOfParent: 0 };
+            }).filter(c => c.value > 0).sort((a, b) => b.value - a.value);
+            const childrenTotal = childrenData.reduce((sum, c) => sum + c.value, 0);
+            const parentTotal = directValue + childrenTotal;
+            childrenData.forEach(c => {
+                c.percentOfParent = parentTotal > 0 ? (c.value / parentTotal) * 100 : 0;
+            });
+            return { ...parent, value: parentTotal, percentOfTotal: totalAmount > 0 ? (parentTotal / totalAmount) * 100 : 0, children: childrenData, hasDirectTransactions: directValue > 0, directValue };
+        }).filter(p => p.value > 0).sort((a, b) => b.value - a.value);
+        return { data, totalAmount };
+    }
+
     const currentBreakdownData = useMemo(() => calculateBreakdown(categoryViewType), [activeTransactions, categories, categoryViewType]);
 
     const budgetChartData = useMemo(() => {
@@ -267,30 +292,7 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
             .slice(0, 5);
     }, [activeTransactions, categories]);
 
-    function calculateBreakdown(type: TransactionType) {
-        const typeTransactions = activeTransactions.filter(t => t.type === type);
-        const totalAmount = typeTransactions.reduce((sum, t) => sum + t.amount, 0);
-        const categoryValues: Record<string, number> = {};
-        typeTransactions.forEach(t => {
-            categoryValues[t.categoryId] = (categoryValues[t.categoryId] || 0) + t.amount;
-        });
-        const parents = categories.filter(c => c.type === type && !c.parentId);
-        const data = parents.map(parent => {
-            const directValue = categoryValues[parent.id] || 0;
-            const children = categories.filter(c => c.parentId === parent.id);
-            const childrenData = children.map(child => {
-                const val = categoryValues[child.id] || 0;
-                return { ...child, value: val, percentOfParent: 0 };
-            }).filter(c => c.value > 0).sort((a, b) => b.value - a.value);
-            const childrenTotal = childrenData.reduce((sum, c) => sum + c.value, 0);
-            const parentTotal = directValue + childrenTotal;
-            childrenData.forEach(c => {
-                c.percentOfParent = parentTotal > 0 ? (c.value / parentTotal) * 100 : 0;
-            });
-            return { ...parent, value: parentTotal, percentOfTotal: totalAmount > 0 ? (parentTotal / totalAmount) * 100 : 0, children: childrenData, hasDirectTransactions: directValue > 0, directValue };
-        }).filter(p => p.value > 0).sort((a, b) => b.value - a.value);
-        return { data, totalAmount };
-    };
+
 
     const incomeBreakdownData = useMemo(() => calculateBreakdown('INCOME'), [activeTransactions, categories]);
     const expenseBreakdownData = useMemo(() => calculateBreakdown('EXPENSE'), [activeTransactions, categories]);
