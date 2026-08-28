@@ -38,6 +38,7 @@ export function TransactionModal({
     initialType = 'EXPENSE',
     currency = 'BRL',
     availableTags = [],
+    descriptionSuggestions = [],
     onSubmit,
     onCreateContact,
 }: TransactionModalProps) {
