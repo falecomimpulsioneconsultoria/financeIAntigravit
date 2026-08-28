@@ -544,8 +544,8 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
                                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                                     <PieChart><Pie data={categoryStats.stats} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2}>{categoryStats.stats.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />))}</Pie><Tooltip formatter={(value: number) => `R$ ${value.toFixed(2)}`} /></PieChart>
                                 </ResponsiveContainer>
-                                <div className="flex flex-wrap gap-2 justify-center mt-4">{categoryStats.stats.slice(0, 5).map((entry, index) => (<div key={entry.id} className="flex items-center gap-1 text-xs text-gray-500"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span><span>{entry.name}</span></div>))}</div>
                             </div>
+                            <div className="flex flex-wrap gap-2 justify-center mt-4">{categoryStats.stats.slice(0, 5).map((entry, index) => (<div key={entry.id} className="flex items-center gap-1 text-xs text-gray-500"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span><span>{entry.name}</span></div>))}</div>
                             {budgetChartData.length > 0 && (
                                 <div className="w-full mt-8 border-t border-gray-100 pt-6">
                                     <h3 className="text-sm font-bold text-gray-800 mb-4 text-center">Realizado vs Meta</h3>
