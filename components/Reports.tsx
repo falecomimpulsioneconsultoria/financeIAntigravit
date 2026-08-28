@@ -339,7 +339,7 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
             context = ` Mês: ${selectedDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })} Regime: ${accountingBasis === 'COMPETENCE' ? 'Competência' : 'Caixa'} DADOS DRE: 1. Receita Bruta: R$ ${dreData.grossRevenue.toFixed(2)} ... `;
         } else if (activeTab === 'CATEGORY') {
             reportType = 'CATEGORY';
-            const topCats = categoryStats.stats.slice(0, 5).map(c => `${c.name}: R$ ${c.value.toFixed(2)} (${c.percentage.toFixed(1)}%)`).join(', ');
+            const topCats = categoryStats.stats.slice(0, 5).map(c => `${c.name}: R$ ${c.value.toFixed(2)} (${c.percentOfTotal.toFixed(1)}%)`).join(', ');
             context = ` Tipo: ${categoryViewType === 'EXPENSE' ? 'Despesas' : 'Receitas'} Total: R$ ${categoryStats.totalAmount.toFixed(2)} Top 5: ${topCats} `;
         } else {
             reportType = 'GENERAL';
