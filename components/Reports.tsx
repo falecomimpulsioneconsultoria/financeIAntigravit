@@ -362,13 +362,35 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
         const bgHeader = isEmerald ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800';
         const barColor = isEmerald ? 'bg-emerald-500' : 'bg-rose-500';
         const barSubColor = isEmerald ? 'bg-emerald-400' : 'bg-rose-400';
+
+        const allCollapsed = breakdown.data.length > 0 && breakdown.data.every(p => collapsedBreakdownIds.has(p.id));
+        
+        const toggleAll = () => {
+            if (allCollapsed) {
+                const newSet = new Set(collapsedBreakdownIds);
+                breakdown.data.forEach(p => newSet.delete(p.id));
+                setCollapsedBreakdownIds(newSet);
+            } else {
+                const newSet = new Set(collapsedBreakdownIds);
+                breakdown.data.forEach(p => newSet.add(p.id));
+                setCollapsedBreakdownIds(newSet);
+            }
+        };
+
         return (
             <div className="flex-1 min-w-0">
                 <div className={`p-4 rounded-t-xl border-b border-gray-100 ${bgHeader}`}>
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mb-2">
                         <h4 className="font-bold text-lg">{title}</h4>
                         <span className="font-bold">R$ {breakdown.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                     </div>
+                    {breakdown.data.length > 0 && (
+                        <div className="flex justify-end">
+                            <button onClick={toggleAll} className={`text-xs font-semibold px-3 py-1 rounded-md transition-colors ${isEmerald ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700' : 'bg-rose-100 hover:bg-rose-200 text-rose-700'}`}>
+                                {allCollapsed ? 'Expandir Todos' : 'Recolher Todos'}
+                            </button>
+                        </div>
+                    )}
                 </div>
                 <div className="p-4 bg-white rounded-b-xl border border-t-0 border-gray-100 space-y-6">
                     {breakdown.data.length === 0 ? (
@@ -515,7 +537,7 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
                         </div>
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center min-w-0">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center min-w-0 lg:sticky lg:top-24 self-start">
                             <h3 className="text-lg font-bold text-gray-800 mb-2 w-full text-center">Distribuição</h3>
                             <p className="text-3xl font-bold text-gray-800 mb-8">R$ {categoryStats.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                             <div className="w-full h-64 min-h-[300px]">
