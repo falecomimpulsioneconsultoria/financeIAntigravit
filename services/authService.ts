@@ -197,7 +197,7 @@ export const authService = {
 
     return (data || []).map(profile => ({
       id: profile.id,
-      name: profile.full_name || '',
+      name: profile.name || '',
       email: profile.email || '',
       role: 'USER' as const,
       isActive: true,
