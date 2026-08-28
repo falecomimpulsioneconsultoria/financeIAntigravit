@@ -1,12 +1,15 @@
 -- =====================================================
--- CORREÇÃO PARA ERRO DE DUPLICIDADE (profiles_pkey)
+-- CORREÇÃO PARA ERRO DE DUPLICIDADE E GEN_SALT
 -- Execute este script no SQL Editor do Supabase
 -- =====================================================
 
--- Primeiro, deletamos a função anterior para evitar conflito de tipos de retorno
+-- 1. Habilitar a extensão necessária para criptografia de senhas
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- 2. Deletar a função anterior
 DROP FUNCTION IF EXISTS public.create_team_member(text, text, text, uuid, jsonb);
 
--- Em seguida, recriamos a função usando UPDATE em vez de INSERT
+-- 3. Recriar a função referenciando corretamente o esquema 'extensions'
 CREATE OR REPLACE FUNCTION public.create_team_member(
   p_email text,
   p_password text,
@@ -17,18 +20,17 @@ CREATE OR REPLACE FUNCTION public.create_team_member(
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
   v_user_id uuid;
   v_encrypted_pw text;
 BEGIN
-  -- 1. Gera ID e senha encriptada para o novo usuário
+  -- 1. Gera ID e senha encriptada para o novo usuário usando a extensão pgcrypto
   v_user_id := gen_random_uuid();
-  v_encrypted_pw := crypt(p_password, gen_salt('bf'));
+  v_encrypted_pw := extensions.crypt(p_password, extensions.gen_salt('bf'));
 
   -- 2. Insere na tabela auth.users. 
-  -- ISSO DISPARA O TRIGGER AUTOMÁTICO QUE CRIA A LINHA EM public.profiles!
   INSERT INTO auth.users (
     id, 
     instance_id, 
@@ -61,7 +63,7 @@ BEGIN
     name = p_full_name,
     owner_id = p_owner_uuid,
     permissions = p_perms,
-    role = 'VIEWER', -- Role padrão para membro da equipe
+    role = 'VIEWER', 
     is_active = true
   WHERE id = v_user_id;
 
