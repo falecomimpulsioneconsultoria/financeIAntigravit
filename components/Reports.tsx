@@ -232,12 +232,6 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
         return data;
     }, [activeTransactions, filterStart, filterEnd, accountingBasis, activeTab]);
 
-    const categoryStats = useMemo(() => {
-        const filtered = activeTransactions.filter(t => t.type === categoryViewType);
-        const totalAmount = filtered.reduce((acc, t) => acc + t.amount, 0);
-        return { totalAmount };
-    }, [activeTransactions, categoryViewType]);
-
     const currentBreakdownData = useMemo(() => calculateBreakdown(categoryViewType), [activeTransactions, categories, categoryViewType]);
 
     const budgetChartData = useMemo(() => {
@@ -249,6 +243,12 @@ export const Reports: React.FC<ReportsProps> = ({ transactions, categories, user
                 Meta: cat.budgetLimit
             }))
             .slice(0, 5);
+    }, [currentBreakdownData]);
+
+    const categoryStats = useMemo(() => {
+        const totalAmount = currentBreakdownData.totalAmount;
+        const stats = currentBreakdownData.data;
+        return { stats, totalAmount };
     }, [currentBreakdownData]);
 
     const categoryMixData = useMemo(() => {
