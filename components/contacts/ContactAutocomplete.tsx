@@ -109,7 +109,7 @@ export function ContactAutocomplete({
   };
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative z-[70]">
       <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
         Pessoa / Fornecedor
         {required && <span className="text-red-500 ml-1">*</span>}

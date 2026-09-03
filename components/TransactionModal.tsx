@@ -590,7 +590,7 @@ export function TransactionModal({
                                         </select>
                                     </div>
                                 ) : (
-                                    <div className="relative">
+                                    <div className="relative z-[60]">
                                         <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Categoria</label>
 
                                         {/* CUSTOM SELECT TRIGGER */}
@@ -713,8 +713,8 @@ export function TransactionModal({
                 </div>
 
                 {/* RIGHT PANEL (EXPANDED OPTIONS) */}
-                <div className={`bg-transparent border-l border-gray-50 transition-all duration-500 ease-in-out overflow-hidden flex flex-col rounded-b-2xl md:rounded-bl-none md:rounded-r-2xl
-                    ${isExpanded && isEditing ? 'md:w-96 opacity-100' : 'md:w-0 opacity-0 pointer-events-none'}`}
+                <div className={`bg-transparent border-l border-gray-50 transition-all duration-500 ease-in-out flex flex-col rounded-b-2xl md:rounded-bl-none md:rounded-r-2xl
+                    ${isExpanded && isEditing ? 'md:w-96 opacity-100 overflow-visible' : 'md:w-0 opacity-0 pointer-events-none overflow-hidden'}`}
                 >
                     <div className="p-6 md:p-8 space-y-6 overflow-y-auto h-full min-w-[20rem]">
                         <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider border-b border-gray-200 pb-2">Opções Avançadas</h3>
@@ -766,7 +766,7 @@ export function TransactionModal({
                         </div>
 
                         {/* TAGS (Autocomplete & Chips) */}
-                        <div className="relative group z-20">
+                        <div className="relative group z-[60]">
                             <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Tags</label>
                             <div className="min-h-[42px] w-full px-2 py-1.5 bg-white border border-gray-200 rounded-xl text-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-300 transition-all flex flex-wrap items-center gap-2">
                                 {tags.map(tag => (
