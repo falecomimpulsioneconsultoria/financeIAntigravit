@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Contact, ContactLabel } from '../../types';
 import { ContactFormModal } from './ContactFormModal';
 
@@ -315,7 +316,7 @@ export function ContactManager({ contacts, onAdd, onEdit, onDelete }: ContactMan
       />
 
       {/* Delete Confirmation */}
-      {confirmDeleteId && (
+      {confirmDeleteId && createPortal(
         <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setConfirmDeleteId(null)} />
           <div className="relative bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full">
@@ -350,7 +351,8 @@ export function ContactManager({ contacts, onAdd, onEdit, onDelete }: ContactMan
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
