@@ -246,12 +246,12 @@ export function TransactionModal({
         <>
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
             <div
-                className={`bg-white rounded-2xl shadow-2xl transform transition-all duration-300 ease-in-out flex flex-col md:flex-row overflow-hidden
+                className={`bg-white rounded-2xl shadow-2xl transform transition-all duration-300 ease-in-out flex flex-col md:flex-row overflow-visible
                     ${isExpanded && isEditing ? 'w-full max-w-5xl' : 'w-full max-w-lg'}
                 `}
             >
                 {/* LEFT PANEL (MAIN FORM) */}
-                <div className="flex-1 p-6 md:p-8 flex flex-col min-h-0 bg-white z-10 relative">
+                <div className="flex-1 p-6 md:p-8 flex flex-col min-h-0 bg-transparent z-10 relative rounded-2xl md:rounded-r-none md:rounded-l-2xl">
                     <div className="flex justify-between items-start mb-6">
                         <div>
                             <h2 className="text-2xl font-bold text-gray-800">
@@ -713,7 +713,7 @@ export function TransactionModal({
                 </div>
 
                 {/* RIGHT PANEL (EXPANDED OPTIONS) */}
-                <div className={`bg-white border-l border-gray-50 transition-all duration-500 ease-in-out overflow-hidden flex flex-col
+                <div className={`bg-transparent border-l border-gray-50 transition-all duration-500 ease-in-out overflow-hidden flex flex-col rounded-b-2xl md:rounded-bl-none md:rounded-r-2xl
                     ${isExpanded && isEditing ? 'md:w-96 opacity-100' : 'md:w-0 opacity-0 pointer-events-none'}`}
                 >
                     <div className="p-6 md:p-8 space-y-6 overflow-y-auto h-full min-w-[20rem]">
