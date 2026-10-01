@@ -430,19 +430,40 @@ const TransactionRow: React.FC<{
         {visibleColumns.acoes && (
         <td className="px-4 py-2 text-right align-middle whitespace-nowrap">
           <div className="inline-flex items-center gap-1">
-            {!isFullyPaid && (
+            {!isFullyPaid && !isChild && (
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (isChild || hasChildren) {
-                    onToggleStatus(tx.id);
-                  } else {
-                    onSettle(tx, balance);
-                  }
+                  onSettle(tx, balance);
                 }}
                 className="p-1.5 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
-                title={isChild || hasChildren ? "Marcar como Pago" : "Efetivar"}
+                title={balance < tx.amount ? "Registrar Pagamento Parcial" : "Efetivar Pagamento"}
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+            )}
+            {!isFullyPaid && isChild && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleStatus(tx.id);
+                }}
+                className="p-1.5 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
+                title="Marcar como Pago"
               >
                 <svg
                   className="w-4 h-4"
@@ -1695,12 +1716,54 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                 </button>
               </div>
 
+              {/* Summary bar showing total, paid, and remaining */}
+              {(() => {
+                const children = transactions.filter(t => t.parentId === transactionToSettle.id);
+                const totalPaid = children.reduce((sum, c) => sum + (c.status === "PAID" ? c.amount : 0), 0);
+                const remaining = Math.max(0, transactionToSettle.amount - totalPaid);
+                const paidPercent = transactionToSettle.amount > 0 ? Math.min(100, (totalPaid / transactionToSettle.amount) * 100) : 0;
+                const formatBRL = (val: number) => `R$ ${val.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+                return (
+                  <div className="mb-6 p-4 bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-2xl border border-gray-100">
+                    <div className="flex items-center justify-between text-xs mb-3">
+                      <span className="font-bold text-gray-500 uppercase tracking-wider">Resumo do Lançamento</span>
+                      <span className="text-[10px] font-bold text-gray-400">{transactionToSettle.description}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3 mb-3">
+                      <div className="text-center">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Total Previsto</p>
+                        <p className="text-sm font-bold text-gray-700">{formatBRL(transactionToSettle.amount)}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider">Já Pago</p>
+                        <p className="text-sm font-bold text-emerald-600">{formatBRL(totalPaid)}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[9px] font-bold text-amber-500 uppercase tracking-wider">Saldo Restante</p>
+                        <p className="text-sm font-bold text-amber-600">{formatBRL(remaining)}</p>
+                      </div>
+                    </div>
+                    {totalPaid > 0 && (
+                      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-emerald-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${paidPercent}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
+                  const amount = parseFloat(settleAmount);
+                  if (!amount || amount <= 0) return;
                   onSettleTransaction(
                     transactionToSettle.id,
-                    parseFloat(settleAmount),
+                    amount,
                     settleDate,
                     settleDescription,
                     settleAccountId,
@@ -1755,6 +1818,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                           <input
                             type="number"
                             step="0.01"
+                            min="0.01"
                             required
                             value={settleAmount}
                             onChange={(e) => setSettleAmount(e.target.value)}
