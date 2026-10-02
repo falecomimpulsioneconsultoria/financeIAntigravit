@@ -240,7 +240,15 @@ export default function App() {
          
          if (parent) {
             if (payload.status === "PAID" && allSiblingsPaid) {
+               // Calculate total paid by children (including the current one being saved)
+               const totalPaidByChildren = siblings
+                 .filter(s => s.status === "PAID")
+                 .reduce((sum, s) => sum + s.amount, 0)
+                 + (parseFloat(String(payload.amount)) || 0);
+
+               if (totalPaidByChildren >= parent.amount - 0.01) {
                await dataService.updateTransaction(currentUser.id, { ...parent, status: "PAID" });
+               }
             } else if (payload.status === "PENDING") {
                await dataService.updateTransaction(currentUser.id, { ...parent, status: "PENDING" });
             }
@@ -417,7 +425,13 @@ export default function App() {
         const parent = transactions.find(t => t.id === target.parentId);
         
         if (parent) {
-          if (newStatus === "PAID" && allSiblingsPaid) {
+          // Calculate total paid by children (including the current one being toggled)
+          const totalPaidByChildren = siblings
+            .filter(s => s.status === "PAID")
+            .reduce((sum, s) => sum + s.amount, 0)
+            + (newStatus === "PAID" ? target.amount : 0);
+
+          if (newStatus === "PAID" && allSiblingsPaid && totalPaidByChildren >= parent.amount - 0.01) {
             await dataService.updateTransaction(currentUser.id, { ...parent, status: "PAID" });
           } else if (newStatus === "PENDING") {
             await dataService.updateTransaction(currentUser.id, { ...parent, status: "PENDING" });

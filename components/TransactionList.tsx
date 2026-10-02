@@ -94,7 +94,7 @@ const TransactionRow: React.FC<{
     0
   );
   const isFullyPaid = tx.status === "PAID";
-  const effectiveRealized = isFullyPaid ? tx.amount : totalRealized;
+  const effectiveRealized = hasChildren ? totalRealized : (isFullyPaid ? tx.amount : 0);
   const balance = Math.max(0, tx.amount - effectiveRealized);
 
   const isOverdue =
