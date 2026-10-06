@@ -230,6 +230,21 @@ export const dataService = {
     }
   },
 
+  deleteTransactions: async (userId: string, ids: string[]): Promise<void> => {
+    checkReadOnly();
+    if (ids.length === 0) return;
+    const { error } = await supabase
+      .from('transactions')
+      .delete()
+      .in('id', ids)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error deleting transactions:', error.message);
+      throw error;
+    }
+  },
+
   // --- ACCOUNTS ---
   getAccounts: async (userId: string): Promise<Account[]> => {
     const { data, error } = await supabase

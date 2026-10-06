@@ -5,7 +5,7 @@ import { Button } from './Button';
 interface ConfirmModalProps {
     isOpen: boolean;
     title: string;
-    message: string;
+    message: React.ReactNode;
     confirmLabel?: string;
     cancelLabel?: string;
     onConfirm: () => void;
@@ -65,9 +65,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-sm shadow-2xl animate-scale-in text-center flex flex-col items-center border border-gray-100/50">
                 {cfg.icon}
                 <h3 className="text-xl font-bold text-gray-800 mb-2">{title}</h3>
-                <p className="text-sm text-gray-500 mb-8 font-medium leading-relaxed">
+                <div className="text-sm text-gray-500 mb-8 font-medium leading-relaxed w-full">
                     {message}
-                </p>
+                </div>
 
                 <div className="flex gap-3 w-full">
                     <button

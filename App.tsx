@@ -36,6 +36,14 @@ import { PaymentWall } from "./components/subscription/PaymentWall";
 import { SuspensionBanner } from "./components/subscription/SuspensionBanner";
 import { useSubscriptionManager } from "./controllers/SubscriptionController";
 import { ConfirmModal } from "./components/ui/ConfirmModal";
+import { RecurrenceEditSummary } from "./components/ui/RecurrenceEditSummary";
+import {
+  RecurrenceScopeModal,
+  RecurrenceScope,
+  applyDayOfMonth,
+  getTransactionsByScope,
+  isGroupedTransaction,
+} from "./components/ui/RecurrenceScopeModal";
 
 const DEFAULT_DASHBOARD_CONFIG: DashboardConfig = {
   showBalanceCard: true,
@@ -127,7 +135,7 @@ export default function App() {
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
-    message: string;
+    message: React.ReactNode;
     onConfirm: () => void;
     variant: "danger" | "warning" | "info";
   }>({
@@ -137,6 +145,20 @@ export default function App() {
     onConfirm: () => {},
     variant: "danger",
   });
+
+  const [scopeModal, setScopeModal] = useState<{
+    isOpen: boolean;
+    action: "edit" | "delete";
+    target: Transaction | null;
+    onConfirm: (scope: RecurrenceScope) => void;
+  }>({
+    isOpen: false,
+    action: "delete",
+    target: null,
+    onConfirm: () => {},
+  });
+  const closeScopeModal = () =>
+    setScopeModal((prev) => ({ ...prev, isOpen: false }));
 
   useEffect(() => {
     const initSession = async () => {
@@ -216,6 +238,58 @@ export default function App() {
     };
 
     if (editingTransaction) {
+      const original = editingTransaction;
+      if (isGroupedTransaction(transactions, original)) {
+        setScopeModal({
+          isOpen: true,
+          action: "edit",
+          target: original,
+          onConfirm: (scope) => {
+            closeScopeModal();
+            setConfirmModal({
+              isOpen: true,
+              title: "Confirmar Edição",
+              message: (
+                <RecurrenceEditSummary
+                  original={original}
+                  payload={payload}
+                  affected={getTransactionsByScope(transactions, original, scope)}
+                  accounts={accounts}
+                  categories={categories}
+                  paymentMethods={paymentMethods}
+                  contacts={contacts}
+                  currency={dashboardConfig.currency}
+                />
+              ),
+              onConfirm: () => {
+                setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+                applyTransactionEdit(original, payload, scope);
+              },
+              variant: "info",
+            });
+          },
+        });
+      } else {
+        await applyTransactionEdit(original, payload, "CURRENT");
+      }
+    } else {
+      await dataService.createTransaction(currentUser.id, payload);
+      // Balance is automatically recalculated by database trigger
+      await fetchData(currentUser.ownerId || currentUser.id);
+    }
+    setIsModalOpen(false);
+    setEditingTransaction(null);
+  };
+
+  const applyTransactionEdit = async (
+    editingTransaction: Transaction,
+    payload: Omit<Transaction, "id"> & { recurrenceCount?: number },
+    scope: RecurrenceScope,
+  ) => {
+    if (!currentUser) return;
+    const affected = getTransactionsByScope(transactions, editingTransaction, scope);
+
+    if (affected.some((t) => t.id === editingTransaction.id)) {
       const updatedTx = {
         ...payload,
         id: editingTransaction.id,
@@ -256,21 +330,101 @@ export default function App() {
       }
 
       await dataService.updateTransaction(currentUser.id, updatedTx);
-      // Balance is automatically recalculated by database trigger
-      await fetchData(currentUser.ownerId || currentUser.id);
-    } else {
-      await dataService.createTransaction(currentUser.id, payload);
-      // Balance is automatically recalculated by database trigger
-      await fetchData(currentUser.ownerId || currentUser.id);
     }
-    setIsModalOpen(false);
-    setEditingTransaction(null);
+
+    // Propagate shared fields to the other records of the group.
+    // Status/payment date stay per-record; only the day of month follows the edited one.
+    const others = affected.filter((t) => t.id !== editingTransaction.id);
+    if (others.length > 0) {
+      const newDay = Number(payload.date.slice(8, 10));
+      const dayChanged = payload.date.slice(8, 10) !== editingTransaction.date.slice(8, 10);
+      await Promise.all(
+        others.map((t) =>
+          dataService.updateTransaction(currentUser.id, {
+            ...t,
+            description: payload.description,
+            amount: payload.amount,
+            type: payload.type,
+            categoryId: payload.categoryId,
+            accountId: payload.accountId,
+            toAccountId: payload.toAccountId,
+            paymentMethodId: payload.paymentMethodId,
+            observation: payload.observation,
+            contactId: payload.contactId,
+            date: dayChanged ? applyDayOfMonth(t.date, newDay) : t.date,
+          }),
+        ),
+      );
+    }
+
+    // Balance is automatically recalculated by database trigger
+    await fetchData(currentUser.ownerId || currentUser.id);
+  };
+
+  const deleteTransactionsByScope = async (
+    target: Transaction,
+    scope: RecurrenceScope,
+    force: boolean,
+  ) => {
+    if (!currentUser) return;
+    const affected = getTransactionsByScope(transactions, target, scope);
+    const ids = new Set(affected.map((t) => t.id));
+
+    const hasExternalChildren = affected.some((t) =>
+      transactions.some((c) => c.parentId === t.id && !ids.has(c.id)),
+    );
+    if (hasExternalChildren && !force) {
+      setConfirmModal({
+        isOpen: true,
+        title: "Ações Necessárias",
+        message: `Um ou mais lançamentos selecionados possuem baixas ou parcelas vinculadas. Exclua primeiro os lançamentos "filhos" para poder removê-los.`,
+        onConfirm: () =>
+          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
+        variant: "warning",
+      });
+      return;
+    }
+
+    const count = ids.size;
+    setConfirmModal({
+      isOpen: true,
+      title: "Confirmar Exclusão",
+      message: `Deseja realmente excluir ${count} ${count === 1 ? "lançamento" : "lançamentos"} de "${target.description}"? Esta ação não pode ser desfeita.`,
+      onConfirm: async () => {
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        try {
+          setLoadingData(true);
+          // Balance is automatically recalculated by database trigger
+          await dataService.deleteTransactions(currentUser.id, [...ids]);
+          await fetchData(currentUser.ownerId || currentUser.id);
+        } catch (error) {
+          console.error("Erro ao excluir:", error);
+          alert("Ocorreu um erro ao excluir os lançamentos.");
+        } finally {
+          setLoadingData(false);
+        }
+      },
+      variant: "danger",
+    });
   };
 
   const deleteTransaction = async (id: string, force: boolean = false) => {
     if (!currentUser) return;
     const target = transactions.find((t) => t.id === id);
     if (!target) return;
+
+    if (isGroupedTransaction(transactions, target)) {
+      setScopeModal({
+        isOpen: true,
+        action: "delete",
+        target,
+        onConfirm: (scope) => {
+          closeScopeModal();
+          deleteTransactionsByScope(target, scope, force);
+        },
+      });
+      return;
+    }
 
     const hasChildren = transactions.some((t) => t.parentId === id);
     if (hasChildren && !force) {
@@ -1249,6 +1403,15 @@ export default function App() {
       />
 
       {/* MODAL DE CONFIRMAÃ‡ÃƒO */}
+      <RecurrenceScopeModal
+        isOpen={scopeModal.isOpen}
+        action={scopeModal.action}
+        target={scopeModal.target}
+        transactions={transactions}
+        onConfirm={scopeModal.onConfirm}
+        onCancel={closeScopeModal}
+      />
+
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         title={confirmModal.title}
