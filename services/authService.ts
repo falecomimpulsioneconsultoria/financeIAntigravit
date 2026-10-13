@@ -3,6 +3,8 @@ import { User, UserPermissions, AccountType } from '../types';
 import { supabase } from '../lib/supabaseClient';
 
 const CURRENT_USER_KEY = 'finances_current_user_cache';
+const IMPERSONATED_ADMIN_KEY = 'finances_impersonated_admin';
+const IMPERSONATED_TARGET_KEY = 'finances_impersonated_target';
 
 // Default permissions for Main User (Everything allowed)
 const FULL_ACCESS: UserPermissions = {
@@ -18,7 +20,21 @@ export const authService = {
   // Check Supabase session
   getSessionUser: async (): Promise<User | null> => {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session || !session.user) return null;
+    if (!session || !session.user) {
+      sessionStorage.removeItem(IMPERSONATED_ADMIN_KEY);
+      sessionStorage.removeItem(IMPERSONATED_TARGET_KEY);
+      return null;
+    }
+
+    // Check if there is an active administrative impersonation session
+    const impersonatedTargetStr = sessionStorage.getItem(IMPERSONATED_TARGET_KEY);
+    if (impersonatedTargetStr) {
+      try {
+        return JSON.parse(impersonatedTargetStr);
+      } catch (e) {
+        sessionStorage.removeItem(IMPERSONATED_TARGET_KEY);
+      }
+    }
 
     // Fetch Profile Data
     const { data: profile } = await supabase
@@ -272,8 +288,46 @@ export const authService = {
   },
 
   logout: async () => {
+    sessionStorage.removeItem(IMPERSONATED_ADMIN_KEY);
+    sessionStorage.removeItem(IMPERSONATED_TARGET_KEY);
     await supabase.auth.signOut();
     localStorage.removeItem(CURRENT_USER_KEY);
+  },
+
+  startImpersonation: (admin: User, targetUser: User) => {
+    sessionStorage.setItem(IMPERSONATED_ADMIN_KEY, JSON.stringify(admin));
+    sessionStorage.setItem(IMPERSONATED_TARGET_KEY, JSON.stringify(targetUser));
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(targetUser));
+  },
+
+  stopImpersonation: (): User | null => {
+    const adminStr = sessionStorage.getItem(IMPERSONATED_ADMIN_KEY);
+    sessionStorage.removeItem(IMPERSONATED_ADMIN_KEY);
+    sessionStorage.removeItem(IMPERSONATED_TARGET_KEY);
+    if (adminStr) {
+      try {
+        const admin: User = JSON.parse(adminStr);
+        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(admin));
+        return admin;
+      } catch (e) {
+        console.error("Error restoring admin user from session:", e);
+      }
+    }
+    return null;
+  },
+
+  getImpersonatedAdmin: (): User | null => {
+    const adminStr = sessionStorage.getItem(IMPERSONATED_ADMIN_KEY);
+    if (!adminStr) return null;
+    try {
+      return JSON.parse(adminStr);
+    } catch {
+      return null;
+    }
+  },
+
+  isImpersonating: (): boolean => {
+    return sessionStorage.getItem(IMPERSONATED_ADMIN_KEY) !== null;
   },
 
   verifyPassword: async (userId: string, password: string): Promise<boolean> => {

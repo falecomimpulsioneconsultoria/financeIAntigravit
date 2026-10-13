@@ -15,6 +15,7 @@ import { AdminAccounts } from "./components/admin/AdminAccounts";
 import { AdminPlans } from "./components/admin/AdminPlans";
 import { AdminPayments } from "./components/admin/AdminPayments";
 import { AdminSettings } from "./components/admin/AdminSettings";
+import { ImpersonationBanner } from "./components/admin/ImpersonationBanner";
 import { SubscriptionAlert } from "./components/subscription/SubscriptionAlert";
 import { ContactManager } from "./components/contacts/ContactManager";
 import {
@@ -91,6 +92,9 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(
     authService.getCurrentUser(),
   );
+  const [impersonatedOriginalAdmin, setImpersonatedOriginalAdmin] = useState<User | null>(
+    () => authService.getImpersonatedAdmin(),
+  );
   const { handlePaymentSimulation } = useSubscriptionManager(
     currentUser || undefined,
   );
@@ -164,25 +168,51 @@ export default function App() {
     const initSession = async () => {
       try {
         const user = await authService.getSessionUser();
+        const storedAdmin = authService.getImpersonatedAdmin();
+        if (storedAdmin) {
+          setImpersonatedOriginalAdmin(storedAdmin);
+        }
         if (user) {
           setCurrentUser(user);
           const effectiveId = user.ownerId || user.id;
           await fetchData(effectiveId);
-          if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
+          if (!storedAdmin && (user.role === "ADMIN" || user.role === "SUPER_ADMIN")) {
             setActiveView("ADMIN_DASHBOARD");
           }
         } else {
           setCurrentUser(null);
+          setImpersonatedOriginalAdmin(null);
         }
       } catch (error) {
         console.error("Session init error", error);
         setCurrentUser(null);
+        setImpersonatedOriginalAdmin(null);
       } finally {
         setIsInitialLoading(false);
       }
     };
     initSession();
   }, []);
+
+  const handleStartImpersonation = async (targetUser: User) => {
+    if (!currentUser) return;
+    const adminUser = impersonatedOriginalAdmin || currentUser;
+    authService.startImpersonation(adminUser, targetUser);
+    setImpersonatedOriginalAdmin(adminUser);
+    setCurrentUser(targetUser);
+    setActiveView("DASHBOARD");
+    await fetchData(targetUser.ownerId || targetUser.id);
+  };
+
+  const handleStopImpersonation = async () => {
+    const originalAdmin = authService.stopImpersonation();
+    if (originalAdmin) {
+      setImpersonatedOriginalAdmin(null);
+      setCurrentUser(originalAdmin);
+      setActiveView("ADMIN_USERS");
+      await fetchData(originalAdmin.id);
+    }
+  };
 
   const fetchData = async (userId: string) => {
     setLoadingData(true);
@@ -727,6 +757,7 @@ export default function App() {
       console.error("Logout error", e);
     } finally {
       // Clear local state
+      setImpersonatedOriginalAdmin(null);
       setCurrentUser(null);
       setTransactions([]);
       setAccounts([]);
@@ -955,7 +986,10 @@ export default function App() {
           (currentUser.role === "ADMIN" ||
             currentUser.role === "SUPER_ADMIN") && (
             <div className="w-full">
-              <AdminUsers />
+              <AdminUsers
+                currentUser={currentUser}
+                onImpersonate={handleStartImpersonation}
+              />
             </div>
           )
         );
@@ -1284,6 +1318,19 @@ export default function App() {
             </button>
           )}
 
+          {impersonatedOriginalAdmin && (
+            <button
+              onClick={handleStopImpersonation}
+              className={`w-full flex items-center ${!isSidebarOpen ? "justify-center" : "gap-3"} text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-2.5 rounded-lg transition-all duration-200 group font-bold text-xs`}
+              title="Voltar para conta de Administrador"
+            >
+              <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+              </svg>
+              {isSidebarOpen && <span>Voltar ao Admin</span>}
+            </button>
+          )}
+
           <button
             onClick={handleLogout}
             className={`w-full flex items-center ${!isSidebarOpen ? "justify-center" : "gap-3"} text-gray-400 hover:text-red-500 hover:bg-red-50 px-3 py-2.5 rounded-lg transition-all duration-200 group`}
@@ -1306,8 +1353,17 @@ export default function App() {
         </div>
       </aside>
 
-      {/* CONTEÃšDO PRINCIPAL */}
+      {/* CONTEÚDO PRINCIPAL */}
       <main className="flex-1 relative overflow-y-auto bg-gray-50/30 scroll-smooth flex flex-col">
+        {/* BANNER DE ACESSO ADMINISTRATIVO (IMPERSONATION) */}
+        {impersonatedOriginalAdmin && currentUser && (
+          <ImpersonationBanner
+            user={currentUser}
+            admin={impersonatedOriginalAdmin}
+            onExit={handleStopImpersonation}
+          />
+        )}
+
         {/* HEADER MOBILE */}
         <header className="md:hidden bg-white border-b border-gray-100 p-4 flex items-center justify-between z-30 shrink-0">
           <div className="flex items-center gap-3">
@@ -1369,7 +1425,7 @@ export default function App() {
       </main>
 
       {/* WALL DE PAGAMENTO */}
-      {currentUser && (
+      {currentUser && !impersonatedOriginalAdmin && (
         <PaymentWall
           user={currentUser}
           onSimulatePayment={() =>

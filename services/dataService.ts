@@ -7,6 +7,9 @@ import { authService } from './authService';
 
 
 const checkReadOnly = () => {
+  if (authService.isImpersonating()) {
+    return;
+  }
   const user = authService.getCurrentUser();
   if (user && user.role === 'USER') {
     const isOverdue = user.paymentStatus === 'OVERDUE' || new Date(user.expirationDate).getTime() < new Date().getTime();
