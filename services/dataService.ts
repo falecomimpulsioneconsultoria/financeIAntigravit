@@ -1,9 +1,16 @@
 import { supabase } from '../lib/supabaseClient';
 import {
   User, Account, Category, Transaction, FinancialSummary,
-  PaymentMethod, Plan, Contact
+  PaymentMethod, Plan, Contact, Loan, LoanPayment, LoanLateFeeType, LoanPaymentType
 } from '../types';
 import { authService } from './authService';
+import {
+  addDaysISO,
+  formatCurrencyBRL,
+  LOAN_PAYMENT_TYPE_LABELS,
+  roundMoney,
+  simulateLoanPayment,
+} from './loanCalculator';
 
 
 const checkReadOnly = () => {
@@ -756,6 +763,271 @@ export const dataService = {
       .eq('user_id', userId);
 
     if (error) console.error('Error deleting description suggestion:', error.message);
+  },
+
+  // --- LOANS (EMPRÉSTIMOS) ---
+  getLoans: async (userId: string): Promise<Loan[]> => {
+    const [loansRes, paymentsRes] = await Promise.all([
+      supabase
+        .from('loans')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('loan_payments')
+        .select('*')
+        .eq('user_id', userId)
+        .order('payment_date', { ascending: false })
+        .order('created_at', { ascending: false }),
+    ]);
+
+    if (loansRes.error) {
+      console.error('Error fetching loans:', loansRes.error.message);
+      return [];
+    }
+
+    const paymentsByLoan = new Map<string, LoanPayment[]>();
+    if (!paymentsRes.error && paymentsRes.data) {
+      for (const p of paymentsRes.data as any[]) {
+        const mapped: LoanPayment = {
+          id: p.id,
+          loanId: p.loan_id,
+          userId: p.user_id,
+          paymentType: p.payment_type,
+          paymentDate: p.payment_date,
+          totalPaid: Number(p.total_paid),
+          lateFeePaid: Number(p.late_fee_paid),
+          interestPaid: Number(p.interest_paid),
+          principalAmortized: Number(p.principal_amortized),
+          daysOverdue: Number(p.days_overdue),
+          principalBefore: Number(p.principal_before),
+          principalAfter: Number(p.principal_after),
+          previousDueDate: p.previous_due_date,
+          newDueDate: p.new_due_date,
+          accountId: p.account_id ?? undefined,
+          transactionId: p.transaction_id ?? undefined,
+          notes: p.notes ?? undefined,
+          createdAt: p.created_at,
+        };
+        const list = paymentsByLoan.get(mapped.loanId) || [];
+        list.push(mapped);
+        paymentsByLoan.set(mapped.loanId, list);
+      }
+    }
+
+    return (loansRes.data || []).map((l: any): Loan => ({
+      id: l.id,
+      userId: l.user_id,
+      contactId: l.contact_id ?? undefined,
+      accountId: l.account_id ?? undefined,
+      borrowerName: l.borrower_name,
+      originalPrincipal: Number(l.original_principal),
+      currentPrincipal: Number(l.current_principal),
+      cyclePrincipal: Number(l.cycle_principal),
+      interestRate: Number(l.interest_rate),
+      lateFeeType: l.late_fee_type as LoanLateFeeType,
+      lateFeeValue: Number(l.late_fee_value),
+      startDate: l.start_date,
+      dueDate: l.due_date,
+      renewalsCount: Number(l.renewals_count),
+      status: l.status,
+      paidOffAt: l.paid_off_at ?? undefined,
+      notes: l.notes ?? undefined,
+      createdTransactionId: l.created_transaction_id ?? undefined,
+      createdAt: l.created_at,
+      updatedAt: l.updated_at ?? undefined,
+      payments: paymentsByLoan.get(l.id) || [],
+    }));
+  },
+
+  createLoan: async (
+    userId: string,
+    payload: {
+      contactId?: string;
+      borrowerName: string;
+      originalPrincipal: number;
+      interestRate: number;
+      lateFeeType: LoanLateFeeType;
+      lateFeeValue: number;
+      startDate: string;
+      notes?: string;
+      postToCashFlow: boolean;
+      accountId?: string;
+      categoryId?: string;
+      paymentMethodId?: string;
+    },
+  ): Promise<{ ok: boolean; error?: string }> => {
+    checkReadOnly();
+
+    const principal = roundMoney(payload.originalPrincipal);
+    const dueDate = addDaysISO(payload.startDate, 30);
+    let createdTransactionId: string | null = null;
+
+    if (payload.postToCashFlow && payload.accountId) {
+      const tx = await dataService.createTransaction(userId, {
+        description: `Empréstimo concedido - ${payload.borrowerName}`,
+        amount: principal,
+        date: payload.startDate,
+        paymentDate: payload.startDate,
+        type: 'EXPENSE',
+        status: 'PAID',
+        accountId: payload.accountId,
+        categoryId: payload.categoryId || null,
+        paymentMethodId: payload.paymentMethodId || null,
+        contactId: payload.contactId || null,
+        isRecurring: false,
+        observation: `Capital emprestado: ${formatCurrencyBRL(principal)} | Juros: ${payload.interestRate}% / 30 dias | 1º vencimento: ${dueDate}${payload.notes ? ` | ${payload.notes}` : ''}`,
+      });
+      if (tx?.id) {
+        createdTransactionId = tx.id;
+      }
+    }
+
+    const { error } = await supabase.from('loans').insert([
+      {
+        user_id: userId,
+        contact_id: payload.contactId || null,
+        account_id: payload.accountId || null,
+        borrower_name: payload.borrowerName.trim(),
+        original_principal: principal,
+        current_principal: principal,
+        cycle_principal: principal,
+        interest_rate: payload.interestRate,
+        late_fee_type: payload.lateFeeType,
+        late_fee_value: payload.lateFeeValue,
+        start_date: payload.startDate,
+        due_date: dueDate,
+        renewals_count: 0,
+        status: 'ACTIVE',
+        notes: payload.notes?.trim() || null,
+        created_transaction_id: createdTransactionId,
+      },
+    ]);
+
+    if (error) {
+      console.error('Error creating loan:', error.message);
+      return { ok: false, error: error.message };
+    }
+
+    return { ok: true };
+  },
+
+  registerLoanPayment: async (
+    userId: string,
+    loan: Loan,
+    payload: {
+      paymentType: LoanPaymentType;
+      paymentDate: string;
+      amount: number;
+      notes?: string;
+      postToCashFlow: boolean;
+      accountId?: string;
+      categoryId?: string;
+      paymentMethodId?: string;
+    },
+  ): Promise<{ ok: boolean; error?: string }> => {
+    checkReadOnly();
+
+    const sim = simulateLoanPayment(
+      loan,
+      payload.paymentType,
+      payload.paymentDate,
+      payload.amount,
+    );
+
+    if (!sim.valid) {
+      return { ok: false, error: sim.error || 'Simulação de pagamento inválida.' };
+    }
+
+    let transactionId: string | null = null;
+    if (payload.postToCashFlow && payload.accountId) {
+      const breakdownParts: string[] = [];
+      if (sim.lateFeePaid > 0) {
+        breakdownParts.push(`Encargos: ${formatCurrencyBRL(sim.lateFeePaid)}`);
+      }
+      if (sim.interestPaid > 0) {
+        breakdownParts.push(`Juros: ${formatCurrencyBRL(sim.interestPaid)}`);
+      }
+      if (sim.principalAmortized > 0) {
+        breakdownParts.push(`Amortização: ${formatCurrencyBRL(sim.principalAmortized)}`);
+      }
+
+      const tx = await dataService.createTransaction(userId, {
+        description: `${LOAN_PAYMENT_TYPE_LABELS[sim.paymentType]} - ${loan.borrowerName}`,
+        amount: sim.totalPaid,
+        date: sim.paymentDate,
+        paymentDate: sim.paymentDate,
+        type: 'INCOME',
+        status: 'PAID',
+        accountId: payload.accountId,
+        categoryId: payload.categoryId || null,
+        paymentMethodId: payload.paymentMethodId || null,
+        contactId: loan.contactId || null,
+        isRecurring: false,
+        observation: `${breakdownParts.join(' | ')} | Saldo após: ${formatCurrencyBRL(sim.principalAfter)}${payload.notes ? ` | ${payload.notes}` : ''}`,
+      });
+      if (tx?.id) {
+        transactionId = tx.id;
+      }
+    }
+
+    const { error: paymentError } = await supabase.from('loan_payments').insert([
+      {
+        loan_id: loan.id,
+        user_id: userId,
+        payment_type: sim.paymentType,
+        payment_date: sim.paymentDate,
+        total_paid: sim.totalPaid,
+        late_fee_paid: sim.lateFeePaid,
+        interest_paid: sim.interestPaid,
+        principal_amortized: sim.principalAmortized,
+        days_overdue: sim.daysOverdue,
+        principal_before: sim.principalBefore,
+        principal_after: sim.principalAfter,
+        previous_due_date: sim.previousDueDate,
+        new_due_date: sim.newDueDate,
+        account_id: payload.accountId || null,
+        transaction_id: transactionId,
+        notes: payload.notes?.trim() || null,
+      },
+    ]);
+
+    if (paymentError) {
+      console.error('Error registering loan payment:', paymentError.message);
+      return { ok: false, error: paymentError.message };
+    }
+
+    const { error: loanUpdateError } = await supabase
+      .from('loans')
+      .update({
+        current_principal: sim.principalAfter,
+        cycle_principal: sim.nextCyclePrincipal,
+        due_date: sim.newDueDate,
+        renewals_count: sim.newRenewalsCount,
+        status: sim.newStatus,
+        paid_off_at: sim.newStatus === 'PAID_OFF' ? sim.paymentDate : null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', loan.id)
+      .eq('user_id', userId);
+
+    if (loanUpdateError) {
+      console.error('Error updating loan after payment:', loanUpdateError.message);
+      return { ok: false, error: loanUpdateError.message };
+    }
+
+    return { ok: true };
+  },
+
+  deleteLoan: async (userId: string, loanId: string): Promise<void> => {
+    checkReadOnly();
+    const { error } = await supabase
+      .from('loans')
+      .delete()
+      .eq('id', loanId)
+      .eq('user_id', userId);
+
+    if (error) console.error('Error deleting loan:', error.message);
   },
 };
 

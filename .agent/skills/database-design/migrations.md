@@ -27,6 +27,20 @@ For zero-downtime changes:
 - Have rollback plan
 - Run in transaction when possible
 
+## Supabase Data API & Explicit Grants (Post-October 2026)
+
+Whenever creating new tables in Supabase (`public` schema), explicit `GRANT`s are mandatory for `supabase-js`, PostgREST, and GraphQL APIs:
+
+```sql
+ALTER TABLE public.your_table ENABLE ROW LEVEL SECURITY;
+
+-- Grants for Supabase Data API
+GRANT SELECT ON public.your_table TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.your_table TO authenticated;
+GRANT ALL ON public.your_table TO service_role;
+```
+*Without these statements, API clients receive `403 Permission Denied` when querying newly created tables or when re-running migrations in preview branches/db reset.*
+
 ## Serverless Databases
 
 ### Neon (Serverless PostgreSQL)

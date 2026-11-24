@@ -18,6 +18,9 @@ import { AdminSettings } from "./components/admin/AdminSettings";
 import { ImpersonationBanner } from "./components/admin/ImpersonationBanner";
 import { SubscriptionAlert } from "./components/subscription/SubscriptionAlert";
 import { ContactManager } from "./components/contacts/ContactManager";
+import { LoanManager } from "./components/loans/LoanManager";
+import { CreateLoanFormPayload } from "./components/loans/LoanFormModal";
+import { RegisterLoanPaymentPayload } from "./components/loans/LoanPaymentModal";
 import {
   Transaction,
   Account,
@@ -28,7 +31,9 @@ import {
   UserPermissions,
   PaymentMethod,
   TransactionType,
-  Contact, DescriptionSuggestion,
+  Contact,
+  DescriptionSuggestion,
+  Loan,
 } from "./types";
 import { AuthScreen } from "./components/Auth";
 import { authService } from "./services/authService";
@@ -80,7 +85,8 @@ type ViewState =
   | "ADMIN_PAYMENTS"
   | "ADMIN_SETTINGS"
   | "TAGS"
-  | "CONTACTS";
+  | "CONTACTS"
+  | "LOANS";
 
 
 interface TransactionFormData extends Omit<Transaction, "id"> { saveSuggestion?: boolean;
@@ -107,6 +113,7 @@ export default function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [loans, setLoans] = useState<Loan[]>([]);
   const [descriptionSuggestions, setDescriptionSuggestions] = useState<DescriptionSuggestion[]>([]);
 
   const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>(
@@ -217,13 +224,14 @@ export default function App() {
   const fetchData = async (userId: string) => {
     setLoadingData(true);
     try {
-      const [txs, accs, cats, methods, ctcts, sugs] = await Promise.all([
+      const [txs, accs, cats, methods, ctcts, sugs, lns] = await Promise.all([
         dataService.getTransactions(userId),
         dataService.getAccounts(userId),
         dataService.getCategories(userId),
         dataService.getPaymentMethods(userId),
         dataService.getContacts(userId),
         dataService.getDescriptionSuggestions(userId),
+        dataService.getLoans(userId),
       ]);
       setTransactions(txs || []);
       setAccounts(accs || []);
@@ -231,6 +239,7 @@ export default function App() {
       setPaymentMethods(methods || []);
       setContacts(ctcts || []);
       setDescriptionSuggestions(sugs || []);
+      setLoans(lns || []);
 
       const savedConfig = localStorage.getItem(`config_${userId}`);
       if (savedConfig) setDashboardConfig(JSON.parse(savedConfig));
@@ -842,6 +851,46 @@ export default function App() {
     return null;
   };
 
+  // ---- LOAN HANDLERS ----
+  const handleCreateLoan = async (payload: CreateLoanFormPayload) => {
+    if (!currentUser) return;
+    const effectiveId = currentUser.ownerId || currentUser.id;
+    const result = await dataService.createLoan(effectiveId, payload);
+    if (!result.ok) {
+      throw new Error(result.error || "Não foi possível salvar o empréstimo.");
+    }
+    await fetchData(effectiveId);
+  };
+
+  const handleRegisterLoanPayment = async (
+    loan: Loan,
+    payload: RegisterLoanPaymentPayload,
+  ) => {
+    if (!currentUser) return;
+    const effectiveId = currentUser.ownerId || currentUser.id;
+    const result = await dataService.registerLoanPayment(effectiveId, loan, payload);
+    if (!result.ok) {
+      throw new Error(result.error || "Não foi possível registrar o pagamento.");
+    }
+    await fetchData(effectiveId);
+  };
+
+  const handleDeleteLoan = (loan: Loan) => {
+    if (!currentUser) return;
+    const effectiveId = currentUser.ownerId || currentUser.id;
+    setConfirmModal({
+      isOpen: true,
+      title: "Excluir Empréstimo",
+      message: `Deseja excluir o empréstimo de "${loan.borrowerName}" e todo o seu histórico de pagamentos? Lançamentos já registrados no fluxo de caixa não serão removidos automaticamente.`,
+      variant: "danger",
+      onConfirm: async () => {
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        await dataService.deleteLoan(effectiveId, loan.id);
+        await fetchData(effectiveId);
+      },
+    });
+  };
+
   const handleNavClick = (view: ViewState) => {
     setActiveView(view);
     setIsMobileMenuOpen(false);
@@ -922,6 +971,23 @@ export default function App() {
               onAdd={handleAddContact}
               onEdit={handleEditContact}
               onDelete={handleDeleteContact}
+            />
+          </div>
+        );
+
+      case "LOANS":
+        return (
+          <div className="w-full">
+            <LoanManager
+              loans={loans}
+              contacts={contacts}
+              accounts={accounts}
+              categories={categories}
+              paymentMethods={paymentMethods}
+              currency={dashboardConfig.currency}
+              onCreateLoan={handleCreateLoan}
+              onRegisterPayment={handleRegisterLoanPayment}
+              onDeleteLoan={handleDeleteLoan}
             />
           </div>
         );
@@ -1265,6 +1331,11 @@ export default function App() {
                   view: "CONTACTS",
                   label: "Contatos",
                   icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
+                },
+                {
+                  view: "LOANS",
+                  label: "Empréstimos",
+                  icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
                 },
                 ...(permissions.viewReports
                   ? [

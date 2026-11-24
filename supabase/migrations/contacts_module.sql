@@ -37,30 +37,61 @@ ALTER TABLE public.transactions
 -- -----------------------------------------------
 ALTER TABLE public.contacts ENABLE ROW LEVEL SECURITY;
 
--- Policy: usuário vê apenas seus próprios contatos
+-- Policy: SELECT (próprio usuário, membro de equipe ou admin)
 DROP POLICY IF EXISTS "contacts_select_own" ON public.contacts;
-CREATE POLICY "contacts_select_own"
+DROP POLICY IF EXISTS "contacts_select_policy" ON public.contacts;
+CREATE POLICY "contacts_select_policy"
   ON public.contacts FOR SELECT
-  USING (auth.uid() = user_id);
+  USING (
+    (auth.uid() = user_id)
+    OR (user_id = (SELECT profiles.owner_id FROM public.profiles WHERE profiles.id = auth.uid()))
+    OR public.is_admin()
+  );
 
--- Policy: usuário insere apenas para si mesmo
+-- Policy: INSERT (próprio usuário, membro de equipe ou admin)
 DROP POLICY IF EXISTS "contacts_insert_own" ON public.contacts;
-CREATE POLICY "contacts_insert_own"
+DROP POLICY IF EXISTS "contacts_insert_policy" ON public.contacts;
+CREATE POLICY "contacts_insert_policy"
   ON public.contacts FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (
+    (auth.uid() = user_id)
+    OR (user_id = (SELECT profiles.owner_id FROM public.profiles WHERE profiles.id = auth.uid()))
+    OR public.is_admin()
+  );
 
--- Policy: usuário atualiza apenas seus contatos
+-- Policy: UPDATE (próprio usuário, membro de equipe ou admin)
 DROP POLICY IF EXISTS "contacts_update_own" ON public.contacts;
-CREATE POLICY "contacts_update_own"
+DROP POLICY IF EXISTS "contacts_update_policy" ON public.contacts;
+CREATE POLICY "contacts_update_policy"
   ON public.contacts FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING (
+    (auth.uid() = user_id)
+    OR (user_id = (SELECT profiles.owner_id FROM public.profiles WHERE profiles.id = auth.uid()))
+    OR public.is_admin()
+  )
+  WITH CHECK (
+    (auth.uid() = user_id)
+    OR (user_id = (SELECT profiles.owner_id FROM public.profiles WHERE profiles.id = auth.uid()))
+    OR public.is_admin()
+  );
 
--- Policy: usuário exclui apenas seus contatos
+-- Policy: DELETE (próprio usuário, membro de equipe ou admin)
 DROP POLICY IF EXISTS "contacts_delete_own" ON public.contacts;
-CREATE POLICY "contacts_delete_own"
+DROP POLICY IF EXISTS "contacts_delete_policy" ON public.contacts;
+CREATE POLICY "contacts_delete_policy"
   ON public.contacts FOR DELETE
-  USING (auth.uid() = user_id);
+  USING (
+    (auth.uid() = user_id)
+    OR (user_id = (SELECT profiles.owner_id FROM public.profiles WHERE profiles.id = auth.uid()))
+    OR public.is_admin()
+  );
+
+-- -----------------------------------------------
+-- PERMISSÕES / GRANTS (Supabase Data API)
+-- -----------------------------------------------
+GRANT SELECT ON public.contacts TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.contacts TO authenticated;
+GRANT ALL ON public.contacts TO service_role;
 
 -- -----------------------------------------------
 -- ÍNDICES para performance de busca

@@ -92,6 +92,20 @@ When user's prompt is NOT in English:
 - **Performance**: Measure first. Adhere to 2025 standards (Core Web Vitals).
 - **Infra/Safety**: 5-Phase Deployment. Verify secrets security.
 
+### 🛡️ Supabase Data API & New Tables Policy
+
+> **MANDATORY:** A partir de 30 de Outubro, o Supabase não concede automaticamente permissões de Data API para novas tabelas no schema `public`.
+> Toda nova tabela criada em migrations/scripts SQL DEVE incluir explicitamente as permissões (GRANT) para as roles `anon`, `authenticated` e `service_role`:
+
+```sql
+ALTER TABLE public.<tabela> ENABLE ROW LEVEL SECURITY;
+
+GRANT SELECT ON public.<tabela> TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.<tabela> TO authenticated;
+GRANT ALL ON public.<tabela> TO service_role;
+```
+*(Nota: Ajustar permissões para `anon` conforme necessário pela regra de negócio, mantendo no mínimo `SELECT` caso a tabela seja pública).*
+
 ### 📁 File Dependency Awareness
 
 **Before modifying ANY file:**

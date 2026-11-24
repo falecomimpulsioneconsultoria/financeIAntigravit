@@ -205,3 +205,60 @@ export interface AIAnalysisResult {
   detailedReasoning: string; // Texto longo para "expandir"
 }
 
+// =====================================================
+// MÓDULO DE CONTROLE DE EMPRÉSTIMOS
+// =====================================================
+export type LoanLateFeeType = 'FIXED' | 'PERCENTAGE';
+export type LoanStatus = 'ACTIVE' | 'PAID_OFF';
+export type LoanPaymentType =
+  | 'INTEREST_ONLY'
+  | 'INTEREST_AND_AMORTIZATION'
+  | 'EARLY_AMORTIZATION'
+  | 'FULL_SETTLEMENT';
+
+export interface LoanPayment {
+  id: string;
+  loanId: string;
+  userId: string;
+  paymentType: LoanPaymentType;
+  paymentDate: string; // YYYY-MM-DD
+  totalPaid: number;
+  lateFeePaid: number;
+  interestPaid: number;
+  principalAmortized: number;
+  daysOverdue: number;
+  principalBefore: number;
+  principalAfter: number;
+  previousDueDate: string; // YYYY-MM-DD
+  newDueDate: string; // YYYY-MM-DD
+  accountId?: string;
+  transactionId?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface Loan {
+  id: string;
+  userId: string;
+  contactId?: string;
+  accountId?: string;
+  borrowerName: string;
+  originalPrincipal: number;
+  currentPrincipal: number;
+  cyclePrincipal: number; // Base de cálculo dos juros do ciclo atual (preservada em amortização antecipada)
+  interestRate: number; // % a cada 30 dias
+  lateFeeType: LoanLateFeeType; // 'FIXED' (R$/dia) ou 'PERCENTAGE' (%/dia)
+  lateFeeValue: number;
+  startDate: string; // YYYY-MM-DD
+  dueDate: string; // YYYY-MM-DD
+  renewalsCount: number;
+  status: LoanStatus;
+  paidOffAt?: string;
+  notes?: string;
+  createdTransactionId?: string;
+  createdAt: string;
+  updatedAt?: string;
+  payments?: LoanPayment[];
+}
+
+
