@@ -5,6 +5,7 @@ export type PersonType = 'FISICA' | 'JURIDICA';
 
 export type ContactLabel =
   | 'Cliente'
+  | 'Banqueiro'
   | 'Transportadora'
   | 'Tecnico'
   | 'Fornecedor'
@@ -26,6 +27,7 @@ export interface Contact {
   whatsapp?: string;
   mobile?: string;
   labels: ContactLabel[];
+  bankerId?: string;
   isActive: boolean;
   createdAt: string;
 }
@@ -241,6 +243,8 @@ export interface Loan {
   id: string;
   userId: string;
   contactId?: string;
+  bankerId?: string;
+  bankerName?: string;
   accountId?: string;
   borrowerName: string;
   originalPrincipal: number;

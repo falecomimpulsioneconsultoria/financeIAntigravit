@@ -6,6 +6,7 @@ interface ContactAutocompleteProps {
   value: string; // contactId
   onChange: (contactId: string) => void;
   onRequestCreate?: (name: string) => void;
+  label?: string;
   required?: boolean;
   disabled?: boolean;
 }
@@ -15,6 +16,7 @@ export function ContactAutocomplete({
   value,
   onChange,
   onRequestCreate,
+  label = 'Pessoa / Fornecedor',
   required = false,
   disabled = false,
 }: ContactAutocompleteProps) {
@@ -98,6 +100,7 @@ export function ContactAutocomplete({
 
   const labelColors: Record<string, string> = {
     Cliente: 'bg-blue-100 text-blue-700',
+    Banqueiro: 'bg-slate-800 text-amber-300',
     Fornecedor: 'bg-amber-100 text-amber-700',
     Colaborador: 'bg-green-100 text-green-700',
     Tecnico: 'bg-emerald-100 text-emerald-700',
@@ -111,7 +114,7 @@ export function ContactAutocomplete({
   return (
     <div ref={containerRef} className="relative z-[70]">
       <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-        Pessoa / Fornecedor
+        {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
 

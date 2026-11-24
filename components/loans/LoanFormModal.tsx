@@ -11,6 +11,8 @@ import {
 
 export interface CreateLoanFormPayload {
   contactId?: string;
+  bankerId?: string;
+  bankerName?: string;
   borrowerName: string;
   originalPrincipal: number;
   interestRate: number;
@@ -46,6 +48,8 @@ export const LoanFormModal: React.FC<LoanFormModalProps> = ({
   onSubmit,
 }) => {
   const [contactId, setContactId] = useState('');
+  const [bankerId, setBankerId] = useState('');
+  const [bankerAutoFilled, setBankerAutoFilled] = useState(false);
   const [customBorrowerName, setCustomBorrowerName] = useState('');
   const [principalStr, setPrincipalStr] = useState('');
   const [interestRateStr, setInterestRateStr] = useState('10');
@@ -63,6 +67,8 @@ export const LoanFormModal: React.FC<LoanFormModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setContactId('');
+      setBankerId('');
+      setBankerAutoFilled(false);
       setCustomBorrowerName('');
       setPrincipalStr('');
       setInterestRateStr('10');
@@ -81,6 +87,16 @@ export const LoanFormModal: React.FC<LoanFormModalProps> = ({
   const selectedContact = useMemo(
     () => contacts.find((c) => c.id === contactId),
     [contacts, contactId],
+  );
+
+  const bankers = useMemo(
+    () => contacts.filter((c) => c.isActive && c.labels.includes('Banqueiro')),
+    [contacts],
+  );
+
+  const selectedBanker = useMemo(
+    () => contacts.find((c) => c.id === bankerId),
+    [contacts, bankerId],
   );
 
   const expenseCategories = useMemo(
@@ -134,6 +150,8 @@ export const LoanFormModal: React.FC<LoanFormModalProps> = ({
     try {
       await onSubmit({
         contactId: contactId || undefined,
+        bankerId: bankerId || undefined,
+        bankerName: selectedBanker?.fantasyName || undefined,
         borrowerName,
         originalPrincipal: principal,
         interestRate,
@@ -188,11 +206,23 @@ export const LoanFormModal: React.FC<LoanFormModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <ContactAutocomplete
+                label="Cliente"
                 contacts={contacts}
                 value={contactId}
                 onChange={(id) => {
                   setContactId(id);
-                  if (id) setCustomBorrowerName('');
+                  if (id) {
+                    setCustomBorrowerName('');
+                    const found = contacts.find((c) => c.id === id);
+                    if (found?.bankerId) {
+                      setBankerId(found.bankerId);
+                      setBankerAutoFilled(true);
+                    } else {
+                      setBankerAutoFilled(false);
+                    }
+                  } else {
+                    setBankerAutoFilled(false);
+                  }
                 }}
               />
             </div>
@@ -209,6 +239,40 @@ export const LoanFormModal: React.FC<LoanFormModalProps> = ({
                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 disabled:bg-gray-50 disabled:text-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
               />
             </div>
+          </div>
+
+          {/* Banqueiro */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Banqueiro (Referência)
+              </label>
+              {bankerAutoFilled && bankerId && (
+                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                  Preenchido do cadastro do cliente
+                </span>
+              )}
+            </div>
+            <select
+              value={bankerId}
+              onChange={(e) => {
+                setBankerId(e.target.value);
+                setBankerAutoFilled(false);
+              }}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+            >
+              <option value="">Sem banqueiro vinculado</option>
+              {bankers.map((banker) => (
+                <option key={banker.id} value={banker.id}>
+                  {banker.fantasyName}
+                </option>
+              ))}
+            </select>
+            {bankers.length === 0 && (
+              <p className="text-[11px] text-gray-400 mt-1">
+                Cadastre um contato com o rótulo &quot;Banqueiro&quot; em Contatos para selecioná-lo aqui.
+              </p>
+            )}
           </div>
 
           {/* Capital, Juros e Data Inicial */}

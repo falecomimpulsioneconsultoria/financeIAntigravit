@@ -5,6 +5,7 @@ import { ContactFormModal } from './ContactFormModal';
 
 const LABEL_DISPLAY: Record<string, string> = {
   Cliente: 'Cliente',
+  Banqueiro: 'Banqueiro',
   Transportadora: 'Transportadora',
   Tecnico: 'Técnico',
   Fornecedor: 'Fornecedor',
@@ -17,6 +18,7 @@ const LABEL_DISPLAY: Record<string, string> = {
 
 const LABEL_COLORS: Record<string, string> = {
   Cliente: 'bg-blue-100 text-blue-700',
+  Banqueiro: 'bg-slate-800 text-amber-300',
   Fornecedor: 'bg-amber-100 text-amber-700',
   Colaborador: 'bg-green-100 text-green-700',
   Tecnico: 'bg-emerald-100 text-emerald-700',
@@ -44,15 +46,33 @@ export function ContactManager({ contacts, onAdd, onEdit, onDelete }: ContactMan
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
+  const contactById = useMemo(() => {
+    const map = new Map<string, Contact>();
+    for (const c of contacts) map.set(c.id, c);
+    return map;
+  }, [contacts]);
+
+  const clientCountByBanker = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const c of contacts) {
+      if (c.bankerId) {
+        counts.set(c.bankerId, (counts.get(c.bankerId) || 0) + 1);
+      }
+    }
+    return counts;
+  }, [contacts]);
+
   const filtered = useMemo(() => {
     return contacts.filter((c) => {
       const q = search.toLowerCase();
+      const bankerName = c.bankerId ? (contactById.get(c.bankerId)?.fantasyName || '') : '';
       const matchSearch =
         !q ||
         c.fantasyName.toLowerCase().includes(q) ||
         (c.legalName || '').toLowerCase().includes(q) ||
         (c.cpfCnpj || '').includes(q) ||
-        (c.email || '').toLowerCase().includes(q);
+        (c.email || '').toLowerCase().includes(q) ||
+        bankerName.toLowerCase().includes(q);
 
       const matchLabel = !filterLabel || c.labels.includes(filterLabel);
 
@@ -63,7 +83,7 @@ export function ContactManager({ contacts, onAdd, onEdit, onDelete }: ContactMan
 
       return matchSearch && matchLabel && matchActive;
     });
-  }, [contacts, search, filterLabel, filterActive]);
+  }, [contacts, contactById, search, filterLabel, filterActive]);
 
   const handleSubmit = async (data: ContactFormData) => {
     if (editingContact) {
@@ -194,6 +214,7 @@ export function ContactManager({ contacts, onAdd, onEdit, onDelete }: ContactMan
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3">CPF/CNPJ</th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3">E-mail</th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3">Telefone</th>
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3">Banqueiro</th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3">Rótulos</th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3">Status</th>
                   <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Ações</th>
@@ -240,6 +261,23 @@ export function ContactManager({ contacts, onAdd, onEdit, onDelete }: ContactMan
                     {/* Phone */}
                     <td className="px-4 py-4">
                       <span className="text-sm text-gray-600">{contact.phone || contact.mobile || '—'}</span>
+                    </td>
+
+                    {/* Banker */}
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {contact.bankerId && contactById.get(contact.bankerId) ? (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 border border-slate-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                          {contactById.get(contact.bankerId)!.fantasyName}
+                        </span>
+                      ) : contact.labels.includes('Banqueiro') ? (
+                        <span className="text-xs font-medium text-slate-500">
+                          {clientCountByBanker.get(contact.id) || 0}{' '}
+                          {(clientCountByBanker.get(contact.id) || 0) === 1 ? 'cliente' : 'clientes'}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
                     </td>
 
                     {/* Labels */}
@@ -313,6 +351,7 @@ export function ContactManager({ contacts, onAdd, onEdit, onDelete }: ContactMan
         onClose={handleFormClose}
         onSubmit={handleFormSubmit}
         initialData={editingContact}
+        contacts={contacts}
       />
 
       {/* Delete Confirmation */}

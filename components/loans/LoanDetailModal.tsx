@@ -10,6 +10,7 @@ import {
 interface LoanDetailModalProps {
   isOpen: boolean;
   loan: Loan | null;
+  bankerName?: string;
   currency: string;
   onClose: () => void;
   onRegisterPayment: (loan: Loan) => void;
@@ -20,6 +21,7 @@ type HistoryFilter = 'ALL' | 'INTEREST' | 'AMORTIZATION' | 'LATE_FEE';
 export const LoanDetailModal: React.FC<LoanDetailModalProps> = ({
   isOpen,
   loan,
+  bankerName,
   currency,
   onClose,
   onRegisterPayment,
@@ -78,6 +80,12 @@ export const LoanDetailModal: React.FC<LoanDetailModalProps> = ({
               ) : (
                 <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-blue-100 text-blue-700">
                   Em dia
+                </span>
+              )}
+              {bankerName && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-800 border border-slate-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  Banqueiro: {bankerName}
                 </span>
               )}
             </div>

@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Contact, ContactLabel, PersonType } from '../../types';
 
 const ALL_LABELS: ContactLabel[] = [
-  'Cliente', 'Transportadora', 'Tecnico', 'Fornecedor',
+  'Cliente', 'Banqueiro', 'Transportadora', 'Tecnico', 'Fornecedor',
   'Colaborador', 'Representada', 'Vendedor', 'Credenciadora', 'Fabricante',
 ];
 
 const LABEL_DISPLAY: Record<ContactLabel, string> = {
   Cliente: 'Cliente',
+  Banqueiro: 'Banqueiro',
   Transportadora: 'Transportadora',
   Tecnico: 'Técnico',
   Fornecedor: 'Fornecedor',
@@ -31,6 +32,7 @@ const EMPTY_FORM: ContactFormData = {
   whatsapp: '',
   mobile: '',
   labels: [],
+  bankerId: '',
   isActive: true,
 };
 
@@ -40,6 +42,7 @@ interface ContactFormModalProps {
   onSubmit: (data: ContactFormData) => Promise<{ duplicateField?: string }>;
   initialData?: Contact | null;
   prefillName?: string;
+  contacts?: Contact[];
 }
 
 export function ContactFormModal({
@@ -48,10 +51,19 @@ export function ContactFormModal({
   onSubmit,
   initialData,
   prefillName,
+  contacts = [],
 }: ContactFormModalProps) {
   const [form, setForm] = useState<ContactFormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  const availableBankers = useMemo(
+    () =>
+      contacts.filter(
+        (c) => c.isActive && c.labels.includes('Banqueiro') && c.id !== initialData?.id
+      ),
+    [contacts, initialData?.id]
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -66,6 +78,7 @@ export function ContactFormModal({
           whatsapp: initialData.whatsapp || '',
           mobile: initialData.mobile || '',
           labels: initialData.labels,
+          bankerId: initialData.bankerId || '',
           isActive: initialData.isActive,
         });
       } else {
@@ -83,12 +96,16 @@ export function ContactFormModal({
   };
 
   const toggleLabel = (label: ContactLabel) => {
-    setForm((prev) => ({
-      ...prev,
-      labels: prev.labels.includes(label)
+    setForm((prev) => {
+      const nextLabels = prev.labels.includes(label)
         ? prev.labels.filter((l) => l !== label)
-        : [...prev.labels, label],
-    }));
+        : [...prev.labels, label];
+      return {
+        ...prev,
+        labels: nextLabels,
+        bankerId: nextLabels.includes('Banqueiro') ? '' : prev.bankerId,
+      };
+    });
   };
 
   const validate = (): boolean => {
@@ -106,7 +123,10 @@ export function ContactFormModal({
     if (!validate()) return;
     setSaving(true);
     try {
-      const result = await onSubmit(form);
+      const result = await onSubmit({
+        ...form,
+        bankerId: form.labels.includes('Banqueiro') ? undefined : (form.bankerId || undefined),
+      });
       if (result.duplicateField) {
         setErrors({ _duplicate: `Já existe um cadastro com o mesmo ${result.duplicateField}.` });
       } else {
@@ -321,6 +341,32 @@ export function ContactFormModal({
                   })}
                 </div>
               </div>
+
+              {/* Banqueiro Responsável (Referência do Cliente) */}
+              {!form.labels.includes('Banqueiro') && (
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    Banqueiro Responsável (Referência)
+                  </label>
+                  <select
+                    value={form.bankerId || ''}
+                    onChange={(e) => set('bankerId', e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">Nenhum banqueiro vinculado</option>
+                    {availableBankers.map((banker) => (
+                      <option key={banker.id} value={banker.id}>
+                        {banker.fantasyName}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-slate-500">
+                    {availableBankers.length > 0
+                      ? 'Ao lançar um empréstimo para este cliente, o banqueiro vinculado será preenchido automaticamente.'
+                      : 'Cadastre contatos com o rótulo "Banqueiro" para vinculá-los aos seus clientes.'}
+                  </p>
+                </div>
+              )}
 
             </div>
 

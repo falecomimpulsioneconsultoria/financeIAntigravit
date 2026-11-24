@@ -579,6 +579,7 @@ export const dataService = {
       whatsapp: c.whatsapp ?? undefined,
       mobile: c.mobile ?? undefined,
       labels: c.labels ?? [],
+      bankerId: c.banker_id ?? undefined,
       isActive: c.is_active ?? true,
       createdAt: c.created_at,
     }));
@@ -643,6 +644,7 @@ export const dataService = {
         whatsapp: contact.whatsapp || null,
         mobile: contact.mobile || null,
         labels: contact.labels,
+        banker_id: contact.bankerId || null,
         is_active: contact.isActive,
       }])
       .select()
@@ -666,6 +668,7 @@ export const dataService = {
         whatsapp: data.whatsapp ?? undefined,
         mobile: data.mobile ?? undefined,
         labels: data.labels ?? [],
+        bankerId: data.banker_id ?? undefined,
         isActive: data.is_active,
         createdAt: data.created_at,
       },
@@ -695,6 +698,7 @@ export const dataService = {
         whatsapp: contact.whatsapp || null,
         mobile: contact.mobile || null,
         labels: contact.labels,
+        banker_id: contact.bankerId || null,
         is_active: contact.isActive,
       })
       .eq('id', contact.id)
@@ -819,6 +823,8 @@ export const dataService = {
       id: l.id,
       userId: l.user_id,
       contactId: l.contact_id ?? undefined,
+      bankerId: l.banker_id ?? undefined,
+      bankerName: l.banker_name ?? undefined,
       accountId: l.account_id ?? undefined,
       borrowerName: l.borrower_name,
       originalPrincipal: Number(l.original_principal),
@@ -844,6 +850,8 @@ export const dataService = {
     userId: string,
     payload: {
       contactId?: string;
+      bankerId?: string;
+      bankerName?: string;
       borrowerName: string;
       originalPrincipal: number;
       interestRate: number;
@@ -887,6 +895,8 @@ export const dataService = {
       {
         user_id: userId,
         contact_id: payload.contactId || null,
+        banker_id: payload.bankerId || null,
+        banker_name: payload.bankerName?.trim() || null,
         account_id: payload.accountId || null,
         borrower_name: payload.borrowerName.trim(),
         original_principal: principal,
