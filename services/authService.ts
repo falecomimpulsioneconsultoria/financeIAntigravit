@@ -97,6 +97,14 @@ export const authService = {
     if (error) throw new Error(error.message);
   },
 
+  adminChangeUserPassword: async (targetUserId: string, newPassword: string): Promise<void> => {
+    const { error } = await supabase.rpc('admin_update_user_password', {
+      p_target_user_id: targetUserId,
+      p_new_password: newPassword
+    });
+    if (error) throw new Error(error.message);
+  },
+
   // Admin: Renew Subscription
   renewSubscription: async (userId: string, amount: number): Promise<User> => {
     // Fetch current profile

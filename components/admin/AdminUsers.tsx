@@ -7,14 +7,17 @@ import { useSubscriptionManager } from '../../controllers/SubscriptionController
 import { InvoiceList } from '../subscription/InvoiceList';
 import { Button } from '../ui/Button';
 import { supabase } from '../../lib/supabaseClient';
+import { AdminChangePasswordModal } from './AdminChangePasswordModal';
 
 interface ClientManagementViewProps {
     user: User;
     onClose: () => void;
     onSave: (userId: string, data: Partial<User>) => Promise<void>;
+    onOpenPasswordModal?: (user: User) => void;
+    canChangePassword?: boolean;
 }
 
-const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClose, onSave }) => {
+const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClose, onSave, onOpenPasswordModal, canChangePassword }) => {
     const [name, setName] = useState(user.name);
     const [email, setEmail] = useState(user.email);
     const [accountType, setAccountType] = useState(user.accountType);
@@ -249,6 +252,34 @@ const ClientManagementView: React.FC<ClientManagementViewProps> = ({ user, onClo
                             </div>
                         </div>
                     </div>
+
+                    {canChangePassword && onOpenPasswordModal && (
+                        <div className="bg-white p-8 rounded-[2rem] shadow-sm ring-1 ring-gray-100 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-2 h-full bg-slate-800"></div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-3">
+                                <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-700">
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                </div>
+                                Segurança de Acesso
+                            </h3>
+                            <p className="text-xs text-gray-500 mb-5">
+                                Redefina diretamente a senha de login deste usuário sem precisar da senha anterior.
+                            </p>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => onOpenPasswordModal(user)}
+                                className="w-full py-3 rounded-xl font-bold uppercase text-xs flex items-center justify-center gap-2 border-slate-300 text-slate-800 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                </svg>
+                                Alterar Senha do Usuário
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </form>
         </div>
@@ -264,6 +295,8 @@ export const AdminUsers: React.FC<AdminUsersProps> = ({ currentUser, onImpersona
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [passwordModalUser, setPasswordModalUser] = useState<User | null>(null);
+    const [passwordFeedback, setPasswordFeedback] = useState<string | null>(null);
     const [filterStatus, setFilterStatus] = useState<'ALL' | 'OVERDUE' | 'EXPIRING_SOON'>('ALL');
     const [searchEmail, setSearchEmail] = useState('');
     const [isSearchingEmail, setIsSearchingEmail] = useState(false);
@@ -428,18 +461,63 @@ export const AdminUsers: React.FC<AdminUsersProps> = ({ currentUser, onImpersona
         return { totalUsers: clientUsers.length, activeCount, overdueCount, totalRevenue };
     }, [users]);
 
+    const canChangePasswordFor = (targetUser: User): boolean => {
+        if (!currentUser || (currentUser.role !== 'SUPER_ADMIN' && currentUser.role !== 'ADMIN')) {
+            return false;
+        }
+        if (targetUser.role === 'SUPER_ADMIN' && currentUser.role !== 'SUPER_ADMIN') {
+            return false;
+        }
+        return true;
+    };
+
+    const handlePasswordChangeSuccess = (targetUser: User) => {
+        setPasswordFeedback(`Senha de ${targetUser.name} (${targetUser.email}) atualizada com sucesso.`);
+        setTimeout(() => {
+            setPasswordFeedback(null);
+        }, 5000);
+    };
+
     if (editingUser) {
         return (
-            <ClientManagementView
-                user={editingUser}
-                onClose={() => setEditingUser(null)}
-                onSave={handleSaveUpdates}
-            />
+            <>
+                <ClientManagementView
+                    user={editingUser}
+                    onClose={() => setEditingUser(null)}
+                    onSave={handleSaveUpdates}
+                    onOpenPasswordModal={(u) => setPasswordModalUser(u)}
+                    canChangePassword={canChangePasswordFor(editingUser)}
+                />
+                <AdminChangePasswordModal
+                    user={passwordModalUser}
+                    isOpen={!!passwordModalUser}
+                    onClose={() => setPasswordModalUser(null)}
+                    onSuccess={handlePasswordChangeSuccess}
+                />
+            </>
         );
     }
 
     return (
         <div className="space-y-6 animate-fade-in">
+            {passwordFeedback && (
+                <div className="p-3.5 rounded-xl text-xs font-semibold border bg-emerald-50 text-emerald-800 border-emerald-200 flex items-center justify-between gap-3 animate-fade-in">
+                    <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{passwordFeedback}</span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setPasswordFeedback(null)}
+                        className="text-emerald-600 hover:text-emerald-900 font-bold"
+                        aria-label="Fechar aviso"
+                    >
+                        ✕
+                    </button>
+                </div>
+            )}
             {/* Direct Email Access Card */}
             <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 rounded-2xl shadow-md border border-slate-700/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="max-w-xl">
@@ -629,6 +707,20 @@ export const AdminUsers: React.FC<AdminUsersProps> = ({ currentUser, onImpersona
                                                         ACESSAR CONTA
                                                     </Button>
                                                 )}
+                                                {canChangePasswordFor(user) && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => setPasswordModalUser(user)}
+                                                        className="px-2.5 py-1.5 flex items-center gap-1.5 font-bold text-[10px] text-slate-700 bg-slate-50 border-slate-300 hover:bg-slate-900 hover:border-slate-900 hover:text-white transition-all shadow-xs"
+                                                        title={`Alterar senha de ${user.name}`}
+                                                    >
+                                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                        </svg>
+                                                        SENHA
+                                                    </Button>
+                                                )}
                                                 <Button 
                                                     size="sm" 
                                                     variant="outline" 
@@ -647,6 +739,13 @@ export const AdminUsers: React.FC<AdminUsersProps> = ({ currentUser, onImpersona
                     </table>
                 </div>
             </div>
+
+            <AdminChangePasswordModal
+                user={passwordModalUser}
+                isOpen={!!passwordModalUser}
+                onClose={() => setPasswordModalUser(null)}
+                onSuccess={handlePasswordChangeSuccess}
+            />
         </div>
     );
 };
