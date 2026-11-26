@@ -12,6 +12,8 @@
     "@dataconnect/generated": "file:src/dataconnect-generated",
     "@google/genai": "^1.30.0",
     "@supabase/supabase-js": "2",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-number-format": "^5.4.4",
